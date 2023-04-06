@@ -136,8 +136,8 @@ const Profile = (props) => {
   // Send friend request to another user
   const sendFriendRequest = async () => {
     const postReqPayload = {
-      sender: loggedInUser.id,
-      recipient: currentUser.id,
+      sender: loggedInUser?.id,
+      recipient: currentUser?.id,
     };
     await api
       .post("/friendRequests", postReqPayload, {
@@ -183,7 +183,7 @@ const Profile = (props) => {
   // Remove friend from friend list
   const removeFriend = async () => {
     await api
-      .delete(`/friendList/${isFriend.id}/${loggedInUser.id}`, {
+      .delete(`/friendList/${isFriend?.id}/${loggedInUser?.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -250,7 +250,7 @@ const Profile = (props) => {
               className={`w-10 h-10 hover:cursor-pointer ml-2 ${
                 isBlocked && "pointer-events-none opacity-50"
               }`}
-              onClick={() => friendRequestHandler(pendingRequest.id)}
+              onClick={() => friendRequestHandler(pendingRequest?.id)}
             />
           </div>
         ) : isFriend ? (
@@ -301,11 +301,11 @@ const Profile = (props) => {
                 </p>
                 <FaUserCheck
                   className="mx-2 w-10 h-10 hover:cursor-pointer"
-                  onClick={() => friendRequestHandler(el.id, sender.id, "accept")}
+                  onClick={() => friendRequestHandler(el.id, sender?.id, "accept")}
                 />
                 <FaUserTimes
                   className="mx-2 w-10 h-10 hover:cursor-pointer"
-                  onClick={() => friendRequestHandler(el.id, sender.id)}
+                  onClick={() => friendRequestHandler(el.id, sender?.id)}
                 />
               </div>
             );

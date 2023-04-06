@@ -80,27 +80,30 @@ function App() {
       .catch((err) => console.log(`Get req err - ${err}`));
   }, []);
 
-  const router = createBrowserRouter([
-    {
-      path: "/",
-      element: <RootLayout />,
-      errorElement: <Error />,
-      children: [
-        { index: true, element: <Home /> },
-        {
-          path: "user",
-          element: <UserLayout />,
-          children: [
-            { index: true, element: <LoggedIn /> },
-            { path: "profile", element: <Profile /> },
-            { path: "news-feed", element: <NewsFeed /> },
-            { path: "messages", element: <Messages /> },
-            { path: "users", element: <Users /> },
-          ],
-        },
-      ],
-    },
-  ]);
+  const router = createBrowserRouter({
+    basename: "/",
+    children: [
+      {
+        path: "/",
+        element: <RootLayout />,
+        errorElement: <Error />,
+        children: [
+          { index: true, element: <Home /> },
+          {
+            path: "user",
+            element: <UserLayout />,
+            children: [
+              { index: true, element: <LoggedIn /> },
+              { path: "profile", element: <Profile /> },
+              { path: "news-feed", element: <NewsFeed /> },
+              { path: "messages", element: <Messages /> },
+              { path: "users", element: <Users /> },
+            ],
+          },
+        ],
+      },
+    ],
+  });
 
   return <RouterProvider router={router} />;
 }
