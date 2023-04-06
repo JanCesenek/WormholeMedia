@@ -72,9 +72,8 @@ const Users = () => {
               el.admin
           );
           const hostile = imBlockedBy || (el.admin && !friendsWithAdmin);
-          const filteredUser = data?.filter(
-            (arg) => arg.firstName.includes(findUsers) || arg.lastName.includes(findUsers)
-          );
+          const fullName = el.firstName.toLowerCase() + " " + el.lastName.toLowerCase();
+          const filteredUser = data?.filter(() => fullName.includes(findUsers.toLowerCase()));
           const returnUser = (
             <div
               key={el.id}

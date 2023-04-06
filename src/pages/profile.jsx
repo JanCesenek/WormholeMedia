@@ -40,6 +40,8 @@ const Profile = (props) => {
     refetch: refetchBlockList,
     isLoading: blocksLoading,
   } = useUpdate("/blockList");
+  const { refetch: refetchPosts, isLoading: postsLoading } = useUpdate("/posts");
+  const { isLoading: commentsLoading } = useUpdate("/comments");
   const curUsername = localStorage.getItem("curUser");
   const [addPost, setAddPost] = useState(false);
   const [message, setMessage] = useState("");
@@ -48,12 +50,15 @@ const Profile = (props) => {
     ? props.stranger
     : userList?.find((el) => el.username === curUsername);
   const loggedInUser = userList?.find((el) => el.username === curUsername);
-  const { refetch: refetchPosts } = useUpdate("/posts");
   const fileInputRef = useRef(null);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  const pendingRequest = requestList?.find((el) => el.recipient === currentUser.id);
-  const incomingRequest = requestList?.find((el) => el.recipient === loggedInUser.id);
+  const pendingRequest = requestList?.find(
+    (el) => el.recipient === currentUser.id && el.sender === loggedInUser.id
+  );
+  const incomingRequest = requestList?.find(
+    (el) => el.recipient === loggedInUser.id && el.sender === currentUser.id
+  );
   const isFriend = friendList?.find(
     (el) =>
       (el.firstUser === loggedInUser.id && el.secondUser === currentUser.id) ||
@@ -191,8 +196,8 @@ const Profile = (props) => {
   // Block another user
   const blockUser = async () => {
     if (isFriend) removeFriend();
-    if (pendingRequest) friendRequestHandler(currentUser.id, loggedInUser.id);
-    if (incomingRequest) friendRequestHandler(loggedInUser.id, currentUser.id);
+    if (pendingRequest) friendRequestHandler(pendingRequest.id, loggedInUser.id);
+    if (incomingRequest) friendRequestHandler(incomingRequest.id, loggedInUser.id);
 
     const postReqPayload = {
       blocker: loggedInUser.id,
@@ -224,7 +229,13 @@ const Profile = (props) => {
       .catch((err) => console.log(`Delete req - ${err}`));
   };
 
-  const loading = usersLoading || friendsLoading || requestsLoading || blocksLoading;
+  const loading =
+    usersLoading ||
+    friendsLoading ||
+    requestsLoading ||
+    blocksLoading ||
+    postsLoading ||
+    commentsLoading;
 
   if (loading) return <Loading font="text-[2rem]" icon="w-[5rem] h-[5rem]" />;
 

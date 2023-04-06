@@ -69,7 +69,7 @@ const PersonalDetails = (props) => {
   };
 
   // Delete req for deleting a user
-  const deleteUser = async () => {
+  const deleteUser = async (e) => {
     if (window.confirm("Really wanna delete your account?")) {
       if (props.profilePicture !== malePic && props.profilePicture !== femalePic) {
         const { data } = await supabase.storage.from("imgs").list("userPics");
@@ -98,7 +98,7 @@ const PersonalDetails = (props) => {
           navigate("/");
         })
         .catch((err) => console.log(`Delete req err - ${err}`));
-    } else return;
+    } else e.preventDefault();
   };
 
   // User can choose to edit occupation, origin or profile picture

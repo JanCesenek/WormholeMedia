@@ -7,7 +7,8 @@ import Loading from "../components/custom/loading";
 const NewsFeed = () => {
   const { isLoading: usersLoading } = useUpdate("/users");
   const { isLoading: postsLoading } = useUpdate("/posts");
-  const loading = usersLoading || postsLoading;
+  const { isLoading: commentsLoading } = useUpdate("/comments");
+  const loading = usersLoading || postsLoading || commentsLoading;
 
   const navigate = useNavigate();
   const loggedIn = localStorage.getItem("token");

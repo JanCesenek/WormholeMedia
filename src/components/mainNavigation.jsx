@@ -16,12 +16,12 @@ const MainNavigation = () => {
     delete api.defaults.headers.common["Authorization"];
   };
 
-  const logOut = () => {
+  const logOut = (e) => {
     if (window.confirm("Are you sure you wanna log out?")) {
       removeBearerToken();
       localStorage.clear();
       navigate("/");
-    } else return;
+    } else e.preventDefault();
   };
 
   const pendingRequests = requestsData?.find((el) => el.recipient === curUser.id);
@@ -34,7 +34,7 @@ const MainNavigation = () => {
         to={"profile"}
         end>
         Profile
-        {pendingRequests && <GiCircleSparks className="w-3 h-3 text-yellow-400" />}
+        {pendingRequests && <GiCircleSparks className="w-3 h-3 text-yellow-400 animate-pulse" />}
       </NavLink>
       <NavLink
         className={({ isActive }) => (isActive ? "underline text-yellow-500" : undefined)}
@@ -50,7 +50,7 @@ const MainNavigation = () => {
         className={({ isActive }) => (isActive ? "underline text-yellow-500 flex" : "flex")}
         to={"messages"}>
         Messages
-        {unreadMessages && <GiCircleSparks className="w-3 h-3 text-yellow-400" />}
+        {unreadMessages && <GiCircleSparks className="w-3 h-3 text-yellow-400 animate-pulse" />}
       </NavLink>
       <NavLink className="border border-white rounded-md px-1" to={"/"} onClick={logOut}>
         Log out

@@ -698,7 +698,6 @@ const Post = (props) => {
                 submit
                 classes={`self-center ${!message && !image && "pointer-events-none opacity-50"}`}
                 onClick={() => {
-                  image && image !== "" && handleUpload();
                   createComment();
                   fileInputRef.current.value = null;
                 }}

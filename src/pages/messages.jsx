@@ -265,7 +265,6 @@ const Messages = () => {
                 !message && !image && "pointer-events-none opacity-50"
               }`}
               onClick={() => {
-                image && handleUpload();
                 sendMessage();
                 fileInputRef.current.value = null;
               }}
