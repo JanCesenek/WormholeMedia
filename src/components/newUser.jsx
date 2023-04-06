@@ -9,6 +9,7 @@ import { AiFillCloseCircle } from "react-icons/ai";
 import { BsFillEyeFill, BsFillEyeSlashFill, BsFillFileImageFill } from "react-icons/bs";
 import { useUpdate } from "../hooks/use-update";
 import Submitting from "./custom/submitting";
+import { v4 as uuid } from "uuid";
 
 const NewUser = (props) => {
   const {
@@ -434,10 +435,7 @@ const NewUser = (props) => {
             classes={`self-center ${!validForm && "pointer-events-none opacity-50"} ${
               isSubmitting && "pointer-events-none opacity-50"
             }`}
-            onClick={() => {
-              profilePic && handleUpload();
-              createNewUser();
-            }}
+            onClick={createNewUser}
           />
         </Form>
       </div>

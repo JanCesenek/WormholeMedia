@@ -6,6 +6,7 @@ import Loading from "../components/custom/loading";
 import Profile from "./profile";
 import { BsTrash3Fill } from "react-icons/bs";
 import { api } from "../core/api";
+import Button from "../components/custom/Button";
 
 const Users = () => {
   const curUser = localStorage.getItem("curUser");
@@ -16,6 +17,8 @@ const Users = () => {
   const getUser = data?.find((el) => el.username === curUser);
   const admin = getUser?.admin;
   const [userDetail, setUserDetail] = useState(false);
+  const [findUsers, setFindUsers] = useState("");
+  const [toggleFind, setToggleFind] = useState(false);
 
   const deleteUser = async (id) => {
     if (window.confirm("Really wanna delete another user?")) {
@@ -37,6 +40,18 @@ const Users = () => {
     <Profile stranger={userDetail} back={() => setUserDetail(false)} />
   ) : (
     <div className="mt-10 flex flex-col">
+      <Button
+        title={toggleFind ? "Hide" : "Search for users"}
+        onClick={() => setToggleFind(!toggleFind)}
+      />
+      {toggleFind && (
+        <input
+          type="text"
+          value={findUsers}
+          onChange={(e) => setFindUsers(e.target.value)}
+          className="bg-transparent border border-white rounded-md mt-2"
+        />
+      )}
       {data?.map((el) => {
         if (el.username !== curUser) {
           const isFriend = friendList?.some(
@@ -57,7 +72,10 @@ const Users = () => {
               el.admin
           );
           const hostile = imBlockedBy || (el.admin && !friendsWithAdmin);
-          return (
+          const filteredUser = data?.filter(
+            (arg) => arg.firstName.includes(findUsers) || arg.lastName.includes(findUsers)
+          );
+          const returnUser = (
             <div
               key={el.id}
               className={`flex items-center bg-black bg-opacity-70 rounded-md mt-2 p-2 justify-between ${
@@ -87,6 +105,9 @@ const Users = () => {
               )}
             </div>
           );
+          if (toggleFind) {
+            if (filteredUser.find((fil) => fil === el)) return returnUser;
+          } else return returnUser;
         }
       })}
     </div>
