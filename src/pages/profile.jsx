@@ -54,18 +54,18 @@ const Profile = (props) => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const pendingRequest = requestList?.find(
-    (el) => el.recipient === currentUser.id && el.sender === loggedInUser.id
+    (el) => el.recipient === currentUser?.id && el.sender === loggedInUser?.id
   );
   const incomingRequest = requestList?.find(
-    (el) => el.recipient === loggedInUser.id && el.sender === currentUser.id
+    (el) => el.recipient === loggedInUser?.id && el.sender === currentUser?.id
   );
   const isFriend = friendList?.find(
     (el) =>
-      (el.firstUser === loggedInUser.id && el.secondUser === currentUser.id) ||
-      (el.firstUser === currentUser.id && el.secondUser === loggedInUser.id)
+      (el.firstUser === loggedInUser?.id && el.secondUser === currentUser?.id) ||
+      (el.firstUser === currentUser?.id && el.secondUser === loggedInUser?.id)
   );
   const isBlocked = blockList?.find(
-    (el) => el.blocker === loggedInUser.id && el.blocked === currentUser.id
+    (el) => el.blocker === loggedInUser?.id && el.blocked === currentUser?.id
   );
 
   useEffect(() => {
@@ -112,7 +112,7 @@ const Profile = (props) => {
     image && handleUpload();
     console.log(image);
     const postReqPayload = {
-      userID: Number(currentUser.id),
+      userID: Number(currentUser?.id),
       message,
       image: image
         ? `https://jwylvnqdlbtbmxsencfu.supabase.co/storage/v1/object/public/imgs/posts/${uniqueID}`
@@ -196,12 +196,12 @@ const Profile = (props) => {
   // Block another user
   const blockUser = async () => {
     if (isFriend) removeFriend();
-    if (pendingRequest) friendRequestHandler(pendingRequest.id, loggedInUser.id);
-    if (incomingRequest) friendRequestHandler(incomingRequest.id, loggedInUser.id);
+    if (pendingRequest) friendRequestHandler(pendingRequest?.id, loggedInUser?.id);
+    if (incomingRequest) friendRequestHandler(incomingRequest?.id, loggedInUser?.id);
 
     const postReqPayload = {
-      blocker: loggedInUser.id,
-      blocked: currentUser.id,
+      blocker: loggedInUser?.id,
+      blocked: currentUser?.id,
     };
     await api
       .post("/blockList", postReqPayload, {
@@ -264,15 +264,17 @@ const Profile = (props) => {
             />
           </div>
         ) : (
-          <div className="text-yellow-400 flex mt-10 items-center bg-black bg-opacity-50 p-2 rounded-md">
-            <p>Send friend request</p>
-            <FaUserPlus
-              className={`w-10 h-10 hover:cursor-pointer ml-2 ${
-                isBlocked && "pointer-events-none opacity-50"
-              }`}
-              onClick={sendFriendRequest}
-            />
-          </div>
+          !incomingRequest && (
+            <div className="text-yellow-400 flex mt-10 items-center bg-black bg-opacity-50 p-2 rounded-md">
+              <p>Send friend request</p>
+              <FaUserPlus
+                className={`w-10 h-10 hover:cursor-pointer ml-2 ${
+                  isBlocked && "pointer-events-none opacity-50"
+                }`}
+                onClick={sendFriendRequest}
+              />
+            </div>
+          )
         ))}
       {props?.stranger &&
         !props?.stranger?.admin &&

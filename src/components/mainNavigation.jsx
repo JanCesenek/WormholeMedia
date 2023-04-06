@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { api } from "../core/api";
 import { GiCircleSparks } from "react-icons/gi";
@@ -8,9 +8,18 @@ const MainNavigation = () => {
   const navigate = useNavigate();
   const { data: usersData } = useUpdate("/users");
   const { data: messagesData } = useUpdate("/messages");
-  const { data: requestsData } = useUpdate("/friendRequests");
+  const { data: requestsData, refetch } = useUpdate("/friendRequests");
   const curUsername = localStorage.getItem("curUser");
   const curUser = usersData?.find((el) => el.username === curUsername);
+  const pendingRequests = requestsData?.find((el) => el.recipient === curUser.id);
+  const unreadMessages = messagesData?.find((el) => el.recipientID === curUser.id && !el.read);
+
+  useEffect(() => {
+    const refetchPendingReq = async () => {
+      await refetch();
+    };
+    refetchPendingReq();
+  }, [pendingRequests]);
 
   const removeBearerToken = () => {
     delete api.defaults.headers.common["Authorization"];
@@ -23,9 +32,6 @@ const MainNavigation = () => {
       navigate("/");
     } else e.preventDefault();
   };
-
-  const pendingRequests = requestsData?.find((el) => el.recipient === curUser.id);
-  const unreadMessages = messagesData?.find((el) => el.recipientID === curUser.id && !el.read);
 
   return (
     <nav className="flex justify-around w-full mt-4">

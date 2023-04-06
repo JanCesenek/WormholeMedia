@@ -17,7 +17,6 @@ import { supStorageURL, supStorageKEY } from "../core/supabaseStorage";
 import { BsFillFileImageFill, BsGenderAmbiguous } from "react-icons/bs";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { FaBirthdayCake } from "react-icons/fa";
-import { FcVip } from "react-icons/fc";
 import { v4 as uuid } from "uuid";
 import Loading from "./custom/loading";
 
@@ -317,7 +316,9 @@ const PersonalDetails = (props) => {
         </p>
         <p className="flex items-center justify-between w-3/5">
           <GiThreeFriends className="w-10 h-10" />
-          <span className="hover:cursor-pointer" onClick={() => setFriendList(!friendList)}>
+          <span
+            className={friendListCount() > 0 ? "hover:cursor-pointer" : undefined}
+            onClick={() => setFriendList(!friendList)}>
             {friendListCount()}
           </span>
         </p>
