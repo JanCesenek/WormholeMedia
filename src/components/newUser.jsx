@@ -12,6 +12,7 @@ import Submitting from "./custom/submitting";
 import { v4 as uuid } from "uuid";
 
 const NewUser = (props) => {
+  // Variables ensuring correct validation in frontend, won't allow user to submit a form until conditions are met
   const {
     value: firstNameValue,
     isValid: firstNameIsValid,
@@ -145,22 +146,28 @@ const NewUser = (props) => {
     setGender("M");
   };
 
+  const getAge = (dateString) => {
+    const today = new Date();
+    const birthDate = new Date(dateString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const createNewUser = async () => {
     const uniqueID = uuid();
     const firstName = firstNameValue[0]?.toUpperCase() + firstNameValue?.slice(1).toLowerCase();
     const lastName = lastNameValue[0]?.toUpperCase() + lastNameValue?.slice(1).toLowerCase();
     const username = usernameValue[0]?.toUpperCase() + usernameValue?.slice(1).toLowerCase();
 
-    const getAge = (dateString) => {
-      const today = new Date();
-      const birthDate = new Date(dateString);
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      return age;
-    };
+    if (getAge(birthDateValue) > 105) {
+      alert("You can't be that old! Try again, inputting a realistic date birth instead...");
+      resetForm();
+      return;
+    }
 
     const defaultPic =
       gender === "M"

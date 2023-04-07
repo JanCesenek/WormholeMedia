@@ -23,6 +23,7 @@ function App() {
   const { refetch: refRequests } = useUpdate("/friendRequests");
   const { refetch: refBlockList } = useUpdate("/blockList");
 
+  // Refetch all data every 2 seconds to enable live messaging
   useEffect(() => {
     api
       .get("/users")
@@ -86,16 +87,22 @@ function App() {
       element: <RootLayout />,
       errorElement: <Error />,
       children: [
+        // Home page when the user is not logged in - has either LogIn or SignUp, if there is a token present, redirect user to his profile
         { index: true, element: <Home /> },
         {
           path: "user",
           element: <UserLayout />,
           children: [
+            // Redirecting page checking for loggedIn state, if there is a token present, redirect user to his profile, otherwise redirect to Home page
             { index: true, element: <LoggedIn /> },
+            // User profile, where he can see his own profile, edit some personal details and CRUD his own posts
             { path: "profile", element: <Profile /> },
+            // News Feed page, where user can see all posts, except users he has blocked/has been blocked by
             { path: "news-feed", element: <NewsFeed /> },
-            { path: "messages", element: <Messages /> },
+            // Users page, where user can search for all users in the DB (regular users, users in friend list, users he's blocked and users he's been blocked by have all different colors) and click on any of them (except the ones he's been blocked by) to display their profile and see their info and posts
             { path: "users", element: <Users /> },
+            // Messages page, where user can send messages to either himself or any other users that are in his friend list
+            { path: "messages", element: <Messages /> },
           ],
         },
       ],

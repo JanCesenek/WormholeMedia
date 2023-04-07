@@ -21,6 +21,7 @@ const Home = () => {
         <h1>Wormhole Media</h1>
         <GiAnubis className="w-20 h-20 ml-2" />
       </div>
+      {/* logIn or signUp state, depending on user's choice */}
       {hasAccount ? (
         <Login link={() => setHasAccount(false)} />
       ) : (

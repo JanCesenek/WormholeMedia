@@ -53,17 +53,21 @@ const Profile = (props) => {
   const fileInputRef = useRef(null);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  // Checks if you sent a friend request to the user you are looking at
   const pendingRequest = requestList?.find(
     (el) => el.recipient === currentUser?.id && el.sender === loggedInUser?.id
   );
+  // Checks if you received a friend request from the users you are looking at
   const incomingRequest = requestList?.find(
     (el) => el.recipient === loggedInUser?.id && el.sender === currentUser?.id
   );
+  // Checks if the current user is already in your friend list
   const isFriend = friendList?.find(
     (el) =>
       (el.firstUser === loggedInUser?.id && el.secondUser === currentUser?.id) ||
       (el.firstUser === currentUser?.id && el.secondUser === loggedInUser?.id)
   );
+  // Checks if the current user is in your block list
   const isBlocked = blockList?.find(
     (el) => el.blocker === loggedInUser?.id && el.blocked === currentUser?.id
   );
@@ -241,7 +245,7 @@ const Profile = (props) => {
 
   return (
     <div className="flex flex-col items-center">
-      {/* Displays a pending request, if you send a friend request to another user, otherwise add the option to add him to friendlist */}
+      {/* If not your own profile, displays friend list options based on your current relationship with the current user */}
       {props.stranger &&
         (pendingRequest ? (
           <div className="flex mt-10 items-center bg-black bg-opacity-50 p-2 rounded-md">
@@ -276,6 +280,7 @@ const Profile = (props) => {
             </div>
           )
         ))}
+      {/* If not your own profile and the user is not admin, displays the possibility to either block or unblock the user */}
       {props?.stranger &&
         !props?.stranger?.admin &&
         (isBlocked ? (
@@ -327,7 +332,7 @@ const Profile = (props) => {
         stranger={props.stranger ? props.stranger : false}
       />
       <div className="mt-5 flex flex-col items-center">
-        {/* Toggles the state for adding a new post */}
+        {/* Toggles the state for adding a new post if it's your own profile, otherwise add the option to go back to view all users */}
         {props.stranger ? (
           <p className="text-yellow-400 underline mt-5 hover:cursor-pointer" onClick={props.back}>
             Back
