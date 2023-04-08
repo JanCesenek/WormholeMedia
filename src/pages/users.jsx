@@ -40,6 +40,7 @@ const Users = () => {
     <Profile stranger={userDetail} back={() => setUserDetail(false)} />
   ) : (
     <div className="mt-10 flex flex-col">
+    <p className="my-2 text-yellow-400">Total users on Wormhole media: {data?.length}</p>
       <Button
         title={toggleFind ? "Hide" : "Search for users"}
         onClick={() => setToggleFind(!toggleFind)}
