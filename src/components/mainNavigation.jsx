@@ -12,7 +12,7 @@ const MainNavigation = () => {
   const curUsername = localStorage.getItem("curUser");
   const curUser = usersData?.find((el) => el.username === curUsername);
   const pendingRequests = requestsData?.find((el) => el.recipient === curUser.id);
-  const unreadMessages = messagesData?.find((el) => el.recipientID === curUser.id && !el.read);
+  const unreadMessages = messagesData?.find((el) => el.recipientID === curUser.id && !el.read && el.senderID !== el.recipientID);
 
   useEffect(() => {
     const refetchPendingReq = async () => {
