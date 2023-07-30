@@ -206,7 +206,6 @@ const NewUser = (props) => {
       lastName,
       username,
       password: passwordValue,
-      age: getAge(birthDateValue),
       gender,
       race: raceValue,
       birthDate: new Date(birthDateValue),

@@ -378,7 +378,7 @@ const Post = (props) => {
   if (loading) return <Loading font="text-[1rem]" icon="w-[3rem] h-[3rem]" />;
 
   return editPost ? (
-    <div className="flex flex-col bg-black bg-opacity-50 p-2 border border-white rounded-md">
+    <div className="flex flex-col bg-black bg-opacity-50 p-2 border border-white rounded-md shadow-lg shadow-white">
       <div className="flex items-center">
         <label htmlFor="msg">Message:</label>
         <textarea
@@ -439,7 +439,7 @@ const Post = (props) => {
       </div>
     </div>
   ) : (
-    <div className={classes.post}>
+    <div className={`${classes.post} shadow-lg shadow-white`}>
       {(props.profile || admin) && (
         <div className="absolute top-5 right-5 hover:cursor-pointer" onClick={deleteReq}>
           <BsFillXCircleFill className="w-5 h-5 text-yellow-600" />
@@ -485,7 +485,7 @@ const Post = (props) => {
       {props.message !== "NULL" && props.message !== "" && (
         <p className="col-span-full">{props.message}</p>
       )}
-      <div className="flex items-center justify-center w-full h-full border-t border-white pt-2 relative">
+      <div className="flex items-center justify-center w-full h-full border-t border-white py-2 relative">
         <p
           onMouseEnter={() => {
             setLikedUsers(true);
@@ -551,7 +551,7 @@ const Post = (props) => {
           onClick={toggleLike}
         />
       </div>
-      <div className="flex items-center justify-center w-full h-full border-t border-white pt-2 relative">
+      <div className="flex items-center justify-center w-full h-full border-t border-white py-2 relative">
         <p
           onMouseEnter={() => {
             setDislikedUsers(true);
@@ -618,9 +618,9 @@ const Post = (props) => {
         />
       </div>
       <div
-        className="flex items-center justify-center w-full h-full border-t border-white pt-2 hover:cursor-pointer"
+        className="flex items-center justify-center w-full h-full border-t border-white py-2 hover:cursor-pointer"
         onClick={() => setComments(!comments)}>
-        <p className="mr-2">Comments{commentCount() > 0 && ` : ${commentCount()}`}</p>{" "}
+        <p className="mr-2">Comments{commentCount() > 0 ? ` : ${commentCount()}` : " : 0"}</p>{" "}
         <FaComments className="w-10 h-10 text-yellow-600 ml-2" />
       </div>
       <div className="col-span-full w-full flex flex-col">

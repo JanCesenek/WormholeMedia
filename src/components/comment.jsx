@@ -45,7 +45,7 @@ const Comment = (props) => {
   if (loading) return <Loading font="text-[0.8rem]" icon="w-[2rem] h-[2rem]" />;
 
   return (
-    <div className="flex justify-start items-center mt-2 border-t border-gray-700 text-xs py-2 min-w-[35rem]">
+    <div className="flex justify-start items-center mt-5 text-xs py-2 min-w-[35rem] p-2 bg-gradient-to-b from-gray-400/20 via-gray-400/40 to-gray-400/20 rounded-md shadow-md shadow-gray-400/50">
       <div className="flex items-center">
         <img
           src={props.profilePicture}

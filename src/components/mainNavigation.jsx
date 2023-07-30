@@ -1,18 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { api } from "../core/api";
 import { GiCircleSparks } from "react-icons/gi";
 import { useUpdate } from "../hooks/use-update";
+import Loading from "./custom/loading";
 
 const MainNavigation = () => {
   const navigate = useNavigate();
-  const { data: usersData } = useUpdate("/users");
-  const { data: messagesData } = useUpdate("/messages");
-  const { data: requestsData, refetch } = useUpdate("/friendRequests");
-  const curUsername = localStorage.getItem("curUser");
-  const curUser = usersData?.find((el) => el.username === curUsername);
+  const { data: usersData, isLoading: usersLoading } = useUpdate("/users");
+  const { data: messagesData, isLoading: messagesLoading } = useUpdate("/messages");
+  const { data: requestsData, refetch, isLoading: requestsLoading } = useUpdate("/friendRequests");
   const pendingRequests = requestsData?.find((el) => el.recipient === curUser.id);
-  const unreadMessages = messagesData?.find((el) => el.recipientID === curUser.id && !el.read && el.senderID !== el.recipientID);
 
   useEffect(() => {
     const refetchPendingReq = async () => {
@@ -20,6 +18,14 @@ const MainNavigation = () => {
     };
     refetchPendingReq();
   }, [pendingRequests]);
+
+  const loading = usersLoading || messagesLoading || requestsLoading;
+  if (loading) return <Loading />;
+  const curUsername = localStorage.getItem("curUser");
+  const curUser = usersData?.find((el) => el.username === curUsername);
+  const unreadMessages = messagesData?.find(
+    (el) => el.recipientID === curUser.id && !el.read && el.senderID !== el.recipientID
+  );
 
   const removeBearerToken = () => {
     delete api.defaults.headers.common["Authorization"];

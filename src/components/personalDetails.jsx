@@ -153,6 +153,18 @@ const PersonalDetails = (props) => {
       .catch((err) => console.log(`Patch req - ${err}`));
   };
 
+  // Count age by date of birth
+  const getAge = (dateString) => {
+    const today = new Date();
+    const birthDate = new Date(dateString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   // Count the number of friends
   const friendListCount = () => {
     let count = 0;
@@ -172,7 +184,10 @@ const PersonalDetails = (props) => {
   if (loading) return <Loading />;
 
   return (
-    <div className={`${classes.profile} ${props.admin && "!text-yellow-400 !border-yellow-400"}`}>
+    <div
+      className={`${classes.profile} shadow-lg ${
+        props.admin ? "!text-yellow-400 !border-yellow-400 shadow-yellow-400" : "shadow-gray-400"
+      }`}>
       <div
         className={`grid grid-cols-2 grid-rows-1 bg-gradient-to-b from-black/70 to-gray-500/70 justify-center items-center`}
         style={{
@@ -244,7 +259,7 @@ const PersonalDetails = (props) => {
         </p>
         <p className="flex items-center justify-between w-3/5">
           <GiAges className="w-10 h-10" />
-          <span>{props.age} y.o.</span>
+          <span>{getAge(props.birthDate)} y.o.</span>
         </p>
         <p className="flex items-center justify-between w-3/5">
           <GiSuitcase className="w-10 h-10" />

@@ -40,7 +40,7 @@ const Users = () => {
     <Profile stranger={userDetail} back={() => setUserDetail(false)} />
   ) : (
     <div className="mt-10 flex flex-col">
-    <p className="my-2 text-yellow-400">Total users on Wormhole media: {data?.length}</p>
+      <p className="my-2 text-yellow-400">Total users on Wormhole media: {data?.length}</p>
       <Button
         title={toggleFind ? "Hide" : "Search for users"}
         onClick={() => setToggleFind(!toggleFind)}
@@ -78,7 +78,7 @@ const Users = () => {
           const returnUser = (
             <div
               key={el.id}
-              className={`flex items-center bg-black bg-opacity-70 rounded-md mt-2 p-2 justify-between ${
+              className={`flex items-center bg-gradient-to-b from-gray-700/50 via-black/70 to-gray-700/50 rounded-md mt-2 p-2 justify-between shadow-lg shadow-gray-700/50 ${
                 isFriend && "text-yellow-400"
               } ${isBlocked && "text-gray-600"} ${hostile && "cursor-not-allowed"}`}>
               <div
