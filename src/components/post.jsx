@@ -48,6 +48,7 @@ const Post = (props) => {
   const [editedMsg, setEditedMsg] = useState("");
   const [editedImg, setEditedImg] = useState(null);
   const [deletedPostPic, setDeletedPostPic] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const curUsername = localStorage.getItem("curUser");
   const curUser = userList.find((el) => el.username === curUsername);
@@ -317,6 +318,7 @@ const Post = (props) => {
 
   // Creates a comment
   const createComment = async () => {
+    setSubmitting(true);
     const uniqueID = uuid();
     // Upload an img to Supabase storage
     const handleUpload = async () => {
@@ -368,6 +370,7 @@ const Post = (props) => {
     setMessage("");
     setAddComment(false);
     setComments(true);
+    setSubmitting(false);
   };
 
   let count = 0;
@@ -694,9 +697,11 @@ const Post = (props) => {
                 )}
               </div>
               <Button
-                title="Submit"
+                title={submitting ? "Submitting..." : "Submit"}
                 submit
-                classes={`self-center ${!message && !image && "pointer-events-none opacity-50"}`}
+                classes={`self-center ${
+                  ((!message && !image) || submitting) && "pointer-events-none opacity-50"
+                }`}
                 onClick={() => {
                   createComment();
                   fileInputRef.current.value = null;

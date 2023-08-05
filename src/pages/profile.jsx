@@ -46,6 +46,7 @@ const Profile = (props) => {
   const [addPost, setAddPost] = useState(false);
   const [message, setMessage] = useState("");
   const [image, setImage] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const currentUser = props.stranger
     ? props.stranger
     : userList?.find((el) => el.username === curUsername);
@@ -91,6 +92,7 @@ const Profile = (props) => {
 
   // Post req for creating a post
   const createPost = async () => {
+    setSubmitting(true);
     const uniqueID = uuid();
     const handleUpload = async () => {
       const { data, error } = await supabase.storage
@@ -135,6 +137,7 @@ const Profile = (props) => {
     setMessage("");
     setImage("");
     setAddPost(false);
+    setSubmitting(false);
   };
 
   // Send friend request to another user
@@ -344,7 +347,7 @@ const Profile = (props) => {
         )}
         {/* Displays the form for adding a new post if addPost is true */}
         {addPost && (
-          <Form className="border border-white rounded-lg p-2 flex flex-col items-center bg-black bg-opacity-50 mt-5">
+          <Form className="border border-white rounded-lg shadow-lg shadow-white p-5 flex flex-col items-center bg-black bg-opacity-50 mt-5">
             <div className="flex">
               <label htmlFor="message">Message:</label>
               <textarea
@@ -383,9 +386,11 @@ const Profile = (props) => {
               )}
             </div>
             <Button
-              title="Submit"
+              title={submitting ? "Submitting..." : "Submit"}
               submit
-              classes={`${!message && !image && "pointer-events-none opacity-50"}`}
+              classes={`${
+                ((!message && !image) || submitting) && "pointer-events-none opacity-50"
+              }`}
               onClick={() => {
                 createPost();
                 fileInputRef.current.value = null;

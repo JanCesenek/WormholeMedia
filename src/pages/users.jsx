@@ -50,7 +50,7 @@ const Users = () => {
           type="text"
           value={findUsers}
           onChange={(e) => setFindUsers(e.target.value)}
-          className="bg-transparent border border-white rounded-md mt-2"
+          className="bg-transparent border border-white rounded-md mt-2 mb-5"
         />
       )}
       {data?.map((el) => {

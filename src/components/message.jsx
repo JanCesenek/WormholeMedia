@@ -44,7 +44,7 @@ const Message = (props) => {
   if (loading) return <Loading font="text-[0.5rem]" icon="w-[1.5rem] h-[1.5rem]" />;
 
   return (
-    <div className={`flex items-center mb-2 ${props.sender ? "justify-end" : "justify-start"}`}>
+    <div className={`flex items-center my-2 ${props.sender ? "justify-end" : "justify-start"}`}>
       {props.sender && (
         <div className="hover:cursor-pointer" onClick={deleteReq}>
           <BsTrash3Fill className="w-3 h-3" />

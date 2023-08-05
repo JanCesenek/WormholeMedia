@@ -6,7 +6,7 @@ import MainNavigation from "../components/mainNavigation";
 
 const UserLayout = () => {
   return (
-    <div className="flex flex-col mx-0 lg:mx-60 bg-black bg-opacity-70 min-h-screen items-center">
+    <div className="flex flex-col mx-0 2xl:mx-60 bg-black bg-opacity-70 min-h-screen items-center">
       <MainNavigation />
       <Outlet />
     </div>

@@ -25,6 +25,7 @@ const Messages = () => {
   const [msgRecipient, setMsgRecipient] = useState();
   const [message, setMessage] = useState("");
   const [image, setImage] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const curUsername = localStorage.getItem("curUser");
   const currentUser = userList?.find((el) => el.username === curUsername);
   const id = currentUser?.id;
@@ -51,6 +52,7 @@ const Messages = () => {
   };
 
   const sendMessage = async () => {
+    setSubmitting(true);
     const uniqueID = uuid();
     const handleUpload = async () => {
       const { data, error } = await supabase.storage
@@ -100,6 +102,7 @@ const Messages = () => {
 
     setMessage("");
     setImage("");
+    setSubmitting(false);
   };
 
   const readMessages = async (senderID, el) => {
@@ -132,7 +135,7 @@ const Messages = () => {
   if (loading) return <Loading font="text-[2rem]" icon="w-[5rem] h-[5rem]" />;
 
   return (
-    <div className="w-[40rem] min-h-[40rem] grid grid-cols-[1fr,2fr] mt-10 bg-black bg-opacity-50 p-4 justify-items-center">
+    <div className="xl:w-[60rem] min-h-[40rem] grid grid-cols-[1fr,2fr] gap-x-5 mt-10 bg-black bg-opacity-50 rounded-lg p-4 justify-items-center">
       <div>
         {userList?.map((el) => {
           const filteredMessages = messageList?.find(
@@ -157,9 +160,13 @@ const Messages = () => {
             return (
               <div
                 key={el.id}
-                className={`col-start-1 col-end-2 mb-2 flex items-center w-full border border-white p-2 hover:cursor-pointer relative ${
-                  !filteredMessages && "opacity-50 text-gray-600"
-                } ${msgRecipient === el && "border-yellow-500 text-yellow-500 border-2"}`}
+                className={`col-start-1 col-end-2 my-5 flex items-center w-full border bg-gradient-to-b from-gray-600/40 via-transparent to-gray-600/40 border-white p-5 hover:cursor-pointer relative rounded-md shadow-lg shadow-white/50 ${
+                  !filteredMessages &&
+                  "opacity-50 text-gray-600 !shadow-gray-600 !from-gray-600/50 !via-transparent !to-gray-600/50"
+                } ${
+                  msgRecipient === el &&
+                  "border-yellow-500 text-yellow-500 border-2 !shadow-yellow-500 !from-yellow-500/20 !via-transparent !to-yellow-500/20"
+                }`}
                 onClick={() => readMessages(el.id, el)}>
                 {el.admin && <FcVip className="w-5 h-5 mr-1" />}
                 <img
@@ -185,8 +192,8 @@ const Messages = () => {
         </div>
       )}
       {msgRecipient && (
-        <div className="flex flex-col self-start w-full items-center min-h-[80rem]">
-          <div className="flex items-center">
+        <div className="flex flex-col self-start w-full items-center bg-gradient-to-b rounded-lg from-gray-600/50 via-transparent to-gray-600/50 p-2">
+          <div className="flex justify-center items-center w-full border-b mt-5">
             {msgRecipient.admin && <FcVip className="w-10 h-10 mr-2" />}
             <img
               src={msgRecipient.profilePicture}
@@ -262,7 +269,7 @@ const Messages = () => {
               title={<BsFillArrowRightCircleFill />}
               submit
               classes={`text-[2rem] max-w-[4rem] max-h-[4rem] self-center !border-none ${
-                !message && !image && "pointer-events-none opacity-50"
+                ((!message && !image) || submitting) && "pointer-events-none opacity-50"
               }`}
               onClick={() => {
                 sendMessage();
