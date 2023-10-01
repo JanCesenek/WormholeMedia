@@ -10,10 +10,11 @@ const Login = (props) => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const loggedIn = localStorage.getItem("token");
+  const userParams = localStorage.getItem("curUser");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    loggedIn && navigate("user");
+    loggedIn && navigate(`${userParams}`);
   }, []);
 
   const addBearerToken = (token) => {
@@ -37,7 +38,7 @@ const Login = (props) => {
         addBearerToken(token);
         localStorage.setItem("curUser", username);
         localStorage.setItem("token", token);
-        navigate("user");
+        navigate(`${username}`);
       })
       .catch((err) => console.log(`Invalid credentials - ${err}`));
     setIsSubmitting(false);

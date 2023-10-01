@@ -90,7 +90,7 @@ function App() {
         // Home page when the user is not logged in - has either LogIn or SignUp, if there is a token present, redirect user to his profile
         { index: true, element: <Home /> },
         {
-          path: "user",
+          path: ":user",
           element: <UserLayout />,
           children: [
             // Redirecting page checking for loggedIn state, if there is a token present, redirect user to his profile, otherwise redirect to Home page

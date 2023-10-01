@@ -226,7 +226,7 @@ const NewUser = (props) => {
         localStorage.setItem("curUser", username);
         resetForm();
         fileInputRef.current.value = null;
-        navigate("user/profile");
+        navigate(`${username}/profile`);
       })
       .catch((err) => console.log(`Post req err - ${err}`));
     setIsSubmitting(false);
