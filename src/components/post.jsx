@@ -11,7 +11,7 @@ import { BsFillXCircleFill, BsFillFileImageFill } from "react-icons/bs";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { createClient } from "@supabase/supabase-js";
 import { supStorageURL, supStorageKEY } from "../core/supabaseStorage";
-import { FaComments, FaCommentMedical, FaCommentSlash, FaPencilAlt } from "react-icons/fa";
+import { FaComments, FaCommentMedical, FaCommentSlash, FaPencilAlt, FaShare } from "react-icons/fa";
 import { BiMessageSquareAdd, BiMessageSquareEdit } from "react-icons/bi";
 import { v4 as uuid } from "uuid";
 
@@ -49,12 +49,16 @@ const Post = (props) => {
   const [editedImg, setEditedImg] = useState(null);
   const [deletedPostPic, setDeletedPostPic] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [sharedMessage, setSharedMessage] = useState("");
 
   const curUsername = localStorage.getItem("curUser");
   const curUser = userList.find((el) => el.username === curUsername);
   const admin = curUser?.admin;
   const id = curUser?.id;
   const token = localStorage.getItem("token");
+  const personSharing = userList.find((el) => el.id === props.sharedBy);
+  const postOwner = userList.find((el) => el.id === props.userID);
 
   useEffect(() => {
     return () => {
@@ -179,7 +183,7 @@ const Post = (props) => {
   // Deletes a post, only possible on user's profile
   const deleteReq = async () => {
     if (window.confirm("Really wanna delete the post?")) {
-      if (props.image) {
+      if (props.image && !props.shared) {
         const { data: presentData } = await supabase.storage.from("imgs").list("posts");
         const curFile = presentData.find((el) => props.image.includes(el.name));
         console.log(curFile);
@@ -375,6 +379,39 @@ const Post = (props) => {
 
   let count = 0;
 
+  const toggleShare = () => {
+    setComments(false);
+    setAddComment(false);
+    setSharing(true);
+  };
+
+  const sharePost = async () => {
+    const postReqPayload = {
+      image: props.image,
+      message: props.message,
+      createdAt: props.createdAt,
+      updatedAt: props.updatedAt,
+      userID: props.userID,
+      shared: true,
+      sharedBy: id,
+      sharedMessage,
+    };
+
+    setSubmitting(true);
+    await api
+      .post("/posts", postReqPayload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(async () => await refetchPosts())
+      .catch((err) => console.log(`Post req - ${err}`));
+    setSubmitting(false);
+    setSharedMessage("");
+    setSharing(false);
+  };
+
   // Checks if post has been updated or not
   const time = props.createdAt === props.updatedAt ? props.createdAt : props.updatedAt;
 
@@ -442,13 +479,31 @@ const Post = (props) => {
       </div>
     </div>
   ) : (
-    <div className={`${classes.post} shadow-lg shadow-white`}>
+    <div className={`${props.shared ? classes.postShared : classes.post} shadow-lg shadow-white`}>
+      {props.shared && (
+        <div className="flex flex-col justify-center w-full col-span-full p-5 mb-5 border-yellow-400 border-b-4">
+          <div className="flex justify-around items-center mx-2">
+            <img
+              src={personSharing?.profilePicture}
+              alt="profilePic"
+              className="w-auto h-auto max-w-[5rem] max-h-[5rem] rounded-lg"
+            />
+            <p className="font-bold text-yellow-400">
+              {personSharing?.firstName} {personSharing?.lastName} shared this post{" "}
+              {props.sharedMessage && "saying:"}
+            </p>
+          </div>
+          <div className="flex justify-center items-center">
+            <p>{props.sharedMessage}</p>
+          </div>
+        </div>
+      )}
       {(props.profile || admin) && (
         <div className="absolute top-5 right-5 hover:cursor-pointer" onClick={deleteReq}>
           <BsFillXCircleFill className="w-5 h-5 text-yellow-600" />
         </div>
       )}
-      {props.profile && (
+      {props.profile && !props.shared && (
         <div
           className="absolute top-5 right-20 hover:cursor-pointer"
           onClick={() => setEditPost(true)}>
@@ -468,14 +523,15 @@ const Post = (props) => {
       </div>
       <div className="w-full h-full flex justify-center items-center border-b border-white">
         <img
-          src={props.profilePicture}
+          src={props.shared ? postOwner?.profilePicture : props.profilePicture}
           alt="profilePic"
           className="w-auto h-auto max-w-full max-h-full rounded-lg"
         />
       </div>
       <div className="text-3xl col-start-2 col-end-4 border-b border-white w-full h-full flex justify-center items-center">
         <h1>
-          {props.firstName} {props.lastName}
+          {props.shared ? postOwner?.firstName : props.firstName}{" "}
+          {props.shared ? postOwner?.lastName : props.lastName}
         </h1>
       </div>
       {props.image !== "NULL" && props.image !== "" && (
@@ -620,11 +676,21 @@ const Post = (props) => {
           onClick={toggleDislike}
         />
       </div>
-      <div
-        className="flex items-center justify-center w-full h-full border-t border-white py-2 hover:cursor-pointer"
-        onClick={() => setComments(!comments)}>
-        <p className="mr-2">Comments{commentCount() > 0 ? ` : ${commentCount()}` : " : 0"}</p>{" "}
-        <FaComments className="w-10 h-10 text-yellow-600 ml-2" />
+      <div className="flex items-center justify-around w-full h-full border-t border-white py-2">
+        <div
+          className="flex items-center justify-center hover:cursor-pointer"
+          onClick={() => setComments(!comments)}>
+          <p className="mr-2">Comments{commentCount() > 0 ? ` : ${commentCount()}` : " : 0"}</p>{" "}
+          <FaComments className="w-10 h-10 text-yellow-600 ml-2" />
+        </div>
+        {!props.profile && id !== props.userID && !props.shared && (
+          <div
+            className="flex items-center justify-center hover:cursor-pointer"
+            onClick={() => toggleShare()}>
+            <p className="mr-2">Share</p>
+            <FaShare className="w-10 h-10 text-yellow-600 ml-2" />
+          </div>
+        )}
       </div>
       <div className="col-span-full w-full flex flex-col">
         {comments &&
@@ -706,6 +772,28 @@ const Post = (props) => {
                   createComment();
                   fileInputRef.current.value = null;
                 }}
+              />
+            </Form>
+          )}
+          {sharing && (
+            <Form className="flex flex-col mt-2 border border-white rounded-lg p-2 [&>*]:mt-2">
+              <div className="flex items-center">
+                <label htmlFor="message">Message (voluntary):</label>
+                <textarea
+                  name="message"
+                  id="message"
+                  cols="30"
+                  rows="10"
+                  className="max-w-[20rem] max-h-[3rem] bg-transparent border border-white rounded-lg ml-2"
+                  value={sharedMessage}
+                  onChange={(e) => setSharedMessage(e.target.value)}
+                />
+              </div>
+              <Button
+                title={submitting ? "Sharing..." : "Share"}
+                submit
+                classes={`self-center ${submitting && "pointer-events-none opacity-50"}`}
+                onClick={() => sharePost()}
               />
             </Form>
           )}

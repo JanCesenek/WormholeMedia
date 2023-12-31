@@ -73,7 +73,7 @@ const Login = (props) => {
           title={isSubmitting ? "Logging in..." : "Log In"}
           submit
           classes={
-            (usernameValue.length < 8 || password.length < 8 || isSubmitting) &&
+            (usernameValue.length < 6 || password.length < 6 || isSubmitting) &&
             "pointer-events-none opacity-50"
           }
           onClick={logIn}

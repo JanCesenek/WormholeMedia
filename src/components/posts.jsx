@@ -21,7 +21,7 @@ const Posts = (props) => {
   return props.profile ? (
     <div className="w-[40rem] mt-10 mb-10">
       {posts?.map((el) => {
-        if (el.userID === Number(id))
+        if ((el.userID === Number(id) && !el.shared) || el.sharedBy === Number(id))
           return (
             <Post
               key={el.id}
@@ -29,11 +29,15 @@ const Posts = (props) => {
               message={el.message}
               createdAt={el.createdAt}
               updatedAt={el.updatedAt}
+              userID={el.userID}
               postID={el.id}
               profilePicture={currentUser?.profilePicture}
               firstName={currentUser?.firstName}
               lastName={currentUser?.lastName}
               profile={props.stranger ? false : true}
+              shared={el.shared}
+              sharedBy={el.sharedBy}
+              sharedMessage={el.sharedMessage}
             />
           );
       })}
@@ -55,10 +59,14 @@ const Posts = (props) => {
               message={el.message}
               createdAt={el.createdAt}
               updatedAt={el.updatedAt}
+              userID={el.userID}
               postID={el.id}
               profilePicture={userMatch?.profilePicture}
               firstName={userMatch?.firstName}
               lastName={userMatch?.lastName}
+              shared={el.shared}
+              sharedBy={el.sharedBy}
+              sharedMessage={el.sharedMessage}
             />
           );
         }
