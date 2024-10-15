@@ -259,7 +259,7 @@ const NewUser = (props) => {
         </p>
       </div>
       <div className="w-[40rem] border rounded-md mt-5 bg-black bg-opacity-50">
-        <Form method="post" className="flex flex-col items-start [&>*]:my-1 p-2">
+        <Form className="flex flex-col items-start [&>*]:my-1 p-2">
           <div className="flex">
             <label htmlFor="firstName" className="min-w-[10rem] ml-2">
               First name:
