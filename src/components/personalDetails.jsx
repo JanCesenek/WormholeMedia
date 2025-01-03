@@ -12,8 +12,7 @@ import {
   GiRingedPlanet,
   GiThreeFriends,
 } from "react-icons/gi";
-import { createClient } from "@supabase/supabase-js";
-import { supStorageURL, supStorageKEY } from "../core/supabaseStorage";
+import { supabase } from "../core/supabase";
 import { BsFillFileImageFill, BsGenderAmbiguous } from "react-icons/bs";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { FaBirthdayCake } from "react-icons/fa";
@@ -52,9 +51,6 @@ const PersonalDetails = (props) => {
       }
     };
   }, [editedPic]);
-
-  // Supabase client - needed for uploading imgs to a database
-  const supabase = createClient(supStorageURL, supStorageKEY);
 
   // Removes a token upon logging out
   const removeBearerToken = () => {

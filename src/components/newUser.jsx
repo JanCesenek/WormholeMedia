@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Form, useNavigate } from "react-router-dom";
 import Button from "./custom/Button";
 import { api } from "../core/api";
-import { createClient } from "@supabase/supabase-js";
-import { supStorageURL, supStorageKEY } from "../core/supabaseStorage";
+import { supabase } from "../core/supabase";
 import UseInput from "../hooks/use-input";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { BsFillEyeFill, BsFillEyeSlashFill, BsFillFileImageFill } from "react-icons/bs";
@@ -108,8 +107,6 @@ const NewUser = (props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
-
-  const supabase = createClient(supStorageURL, supStorageKEY);
 
   const { refetch } = useUpdate("/users");
 

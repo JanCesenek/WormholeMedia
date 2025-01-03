@@ -5,8 +5,7 @@ import Posts from "../components/posts";
 import Button from "../components/custom/Button";
 import { api } from "../core/api";
 import { useUpdate } from "../hooks/use-update";
-import { createClient } from "@supabase/supabase-js";
-import { supStorageURL, supStorageKEY } from "../core/supabaseStorage";
+import { supabase } from "../core/supabase";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { BsFillFileImageFill } from "react-icons/bs";
 import {
@@ -81,8 +80,6 @@ const Profile = (props) => {
       }
     };
   }, [image]);
-
-  const supabase = createClient(supStorageURL, supStorageKEY);
 
   // Changes input:file value
   const handleFileChange = (e) => {

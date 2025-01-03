@@ -3,13 +3,12 @@ import { Form, useNavigate } from "react-router-dom";
 import Message from "../components/message";
 import Button from "../components/custom/Button";
 import { api } from "../core/api";
-import { createClient } from "@supabase/supabase-js";
-import { supStorageURL, supStorageKEY } from "../core/supabaseStorage";
 import { useUpdate } from "../hooks/use-update";
 import { BsFillArrowRightCircleFill, BsFillFileImageFill } from "react-icons/bs";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { FcVip } from "react-icons/fc";
 import { GiCircleSparks } from "react-icons/gi";
+import { supabase } from "../core/supabase";
 import Loading from "../components/custom/loading";
 import { v4 as uuid } from "uuid";
 import tyjelk from "../imgs/tealc-clone.gif";
@@ -43,8 +42,6 @@ const Messages = () => {
       }
     };
   }, [image]);
-
-  const supabase = createClient(supStorageURL, supStorageKEY);
 
   const handleFileChange = (e) => {
     console.log(e.target.files[0]);

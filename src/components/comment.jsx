@@ -3,8 +3,7 @@ import { api } from "../core/api";
 import { useUpdate } from "../hooks/use-update";
 import { BsBackspaceFill } from "react-icons/bs";
 import Loading from "./custom/loading";
-import { createClient } from "@supabase/supabase-js";
-import { supStorageURL, supStorageKEY } from "../core/supabaseStorage";
+import { supabase } from "../core/supabase";
 
 const Comment = (props) => {
   const curUsername = localStorage.getItem("curUser");
@@ -15,8 +14,6 @@ const Comment = (props) => {
   const token = localStorage.getItem("token");
 
   const loading = usersLoading || commentsLoading;
-
-  const supabase = createClient(supStorageURL, supStorageKEY);
 
   const deleteReq = async () => {
     if (props.image) {

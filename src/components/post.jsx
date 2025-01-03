@@ -9,8 +9,7 @@ import { useUpdate } from "../hooks/use-update";
 import { GiGreatPyramid } from "react-icons/gi";
 import { BsFillXCircleFill, BsFillFileImageFill } from "react-icons/bs";
 import { AiFillCloseCircle } from "react-icons/ai";
-import { createClient } from "@supabase/supabase-js";
-import { supStorageURL, supStorageKEY } from "../core/supabaseStorage";
+import { supabase } from "../core/supabase";
 import { FaComments, FaCommentMedical, FaCommentSlash, FaPencilAlt, FaShare } from "react-icons/fa";
 import { BiMessageSquareAdd, BiMessageSquareEdit } from "react-icons/bi";
 import { v4 as uuid } from "uuid";
@@ -70,9 +69,6 @@ const Post = (props) => {
       }
     };
   }, [image, editedImg]);
-
-  // Supabase client had to be created to allow user to upload imgs there
-  const supabase = createClient(supStorageURL, supStorageKEY);
 
   // Change input:file value
   const handleFileChange = (e) => {

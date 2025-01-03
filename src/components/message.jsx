@@ -4,8 +4,7 @@ import classes from "./message.module.scss";
 import { api } from "../core/api";
 import { useUpdate } from "../hooks/use-update";
 import { BsTrash3Fill } from "react-icons/bs";
-import { createClient } from "@supabase/supabase-js";
-import { supStorageURL, supStorageKEY } from "../core/supabaseStorage";
+import { supabase } from "../core/supabase";
 
 const Message = (props) => {
   const { isLoading: usersLoading } = useUpdate("/users");
@@ -13,8 +12,6 @@ const Message = (props) => {
   const token = localStorage.getItem("token");
 
   const loading = usersLoading || messagesLoading;
-
-  const supabase = createClient(supStorageURL, supStorageKEY);
 
   const deleteReq = async () => {
     if (props.image) {
