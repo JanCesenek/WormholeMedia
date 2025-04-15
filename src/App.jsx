@@ -11,6 +11,7 @@ import NewsFeed from "./pages/newsFeed";
 import Messages from "./pages/messages";
 import Users from "./pages/users";
 import { useUpdate } from "./hooks/use-update";
+import { NotificationProvider } from "./context/NotificationContext";
 
 function App() {
   const { refetch: refUsers } = useUpdate("/users");
@@ -109,7 +110,11 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <NotificationProvider>
+      <RouterProvider router={router} />
+    </NotificationProvider>
+  );
 }
 
 export default App;

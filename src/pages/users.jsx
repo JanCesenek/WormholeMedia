@@ -40,9 +40,10 @@ const Users = () => {
     <Profile stranger={userDetail} back={() => setUserDetail(false)} />
   ) : (
     <div className="mt-10 flex flex-col">
-      <p className="my-2 text-yellow-400">Total users on Wormhole media: {data?.length}</p>
+      <p className="my-5 text-fuchsia-400">Total users on Wormhole media: {data?.length}</p>
       <Button
         title={toggleFind ? "Hide" : "Search for users"}
+        classes="my-5"
         onClick={() => setToggleFind(!toggleFind)}
       />
       {toggleFind && (
@@ -50,7 +51,7 @@ const Users = () => {
           type="text"
           value={findUsers}
           onChange={(e) => setFindUsers(e.target.value)}
-          className="bg-transparent border border-white rounded-md mt-2 mb-5"
+          className="bg-black/50 border border-fuchsia-600/20 shadow-md shadow-fuchsia-600/50 rounded-md mt-2 mb-5 focus:outline-none"
         />
       )}
       {data?.map((el) => {
@@ -78,9 +79,11 @@ const Users = () => {
           const returnUser = (
             <div
               key={el.id}
-              className={`flex items-center bg-gradient-to-b from-gray-700/50 via-black/70 to-gray-700/50 rounded-md mt-2 p-2 justify-between shadow-lg shadow-gray-700/50 ${
-                isFriend && "text-yellow-400"
-              } ${isBlocked && "text-gray-600"} ${hostile && "cursor-not-allowed"}`}>
+              className={`flex items-center bg-gradient-to-b from-black/80 via-fuchsia-800/40 to-black/80 rounded-md my-2 p-2 justify-between shadow-lg shadow-fuchsia-400/50 ${
+                isFriend && "text-fuchsia-200 font-bold"
+              } ${isBlocked && "text-fuchsia-800 text-thin"} ${
+                hostile && "pointer-events-none opacity-70"
+              }`}>
               <div
                 className={`flex items-center rounded-md hover:cursor-pointer [&>*]:mx-2 ${
                   hostile && "pointer-events-none opacity-40"
@@ -96,10 +99,10 @@ const Users = () => {
                   {el.firstName} {el.lastName}
                 </p>
               </div>
-              {hostile && <FaUserSecret className="text-red-600 ml-5" />}
+              {hostile && <FaUserSecret className="text-fuchsia-600 ml-5" />}
               {admin && (
                 <BsTrash3Fill
-                  className="text-red-600 ml-5 hover:cursor-pointer"
+                  className="text-fuchsia-600 ml-5 hover:cursor-pointer"
                   onClick={() => deleteUser(el.username)}
                 />
               )}

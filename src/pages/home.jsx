@@ -16,8 +16,8 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center bg-black bg-opacity-70 min-h-screen mx-0 2xl:mx-60">
-      <div className="flex text-[3rem] font-[Audiowide,cursive] font-bold border border-white rounded-2xl bg-black bg-opacity-40 p-2 mt-[1%]">
+    <div className="flex flex-col items-center min-h-screen mx-0 2xl:mx-60">
+      <div className="flex justify-center text-[3rem] font-[Audiowide,cursive] font-bold rounded-lg bg-black/50 p-5 shadow-lg shadow-fuchsia-600/50 mt-10 w-[min(40rem,90%)]">
         <h1>Wormhole Media</h1>
         <GiAnubis className="w-20 h-20 ml-2" />
       </div>

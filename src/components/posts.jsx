@@ -19,7 +19,7 @@ const Posts = (props) => {
   if (loading) return <Loading font="text-[2rem]" icon="w-[5rem] h-[5rem]" />;
 
   return props.profile ? (
-    <div className="w-[40rem] mt-10 mb-10">
+    <div className="flex flex-col items-center w-full my-10">
       {posts?.map((el) => {
         if ((el.userID === Number(id) && !el.shared) || el.sharedBy === Number(id))
           return (
@@ -43,7 +43,7 @@ const Posts = (props) => {
       })}
     </div>
   ) : (
-    <div className="w-[40rem] mt-10">
+    <div className="flex flex-col items-center w-full mt-10">
       {posts?.map((el) => {
         const userMatch = userList?.find((user) => user.id === el.userID);
         const blockedPost = blockList?.find(

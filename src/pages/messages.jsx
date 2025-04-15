@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { Form, useNavigate } from "react-router-dom";
 import Message from "../components/message";
 import Button from "../components/custom/Button";
@@ -7,13 +7,16 @@ import { useUpdate } from "../hooks/use-update";
 import { BsFillArrowRightCircleFill, BsFillFileImageFill } from "react-icons/bs";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { FcVip } from "react-icons/fc";
-import { GiCircleSparks } from "react-icons/gi";
-import { supabase } from "../core/supabase";
+import { GiCircleSparks, GiRadioactive, GiClusterBomb } from "react-icons/gi";
+import supabase from "../core/supabase";
 import Loading from "../components/custom/loading";
 import { v4 as uuid } from "uuid";
 import tyjelk from "../imgs/tealc-clone.gif";
+import { NotificationContext } from "../context/NotificationContext";
 
 const Messages = () => {
+  const { notifyContext, setStatus } = useContext(NotificationContext);
+
   const { data: userList, isLoading: usersLoading } = useUpdate("/users");
   const {
     data: messageList,
@@ -63,8 +66,16 @@ const Messages = () => {
 
       if (error) {
         console.log("Error uploading file...", error);
-        alert(
-          "Could not upload the file. A file with the same name most likely already exists. Try to rename the file and see if the issues persists!"
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" />{" "}
+            <span>
+              Could not upload the file. A file with the same name most likely already exists. Try
+              to rename the file and see if the issue persists!
+            </span>
+          </div>,
+          "error"
         );
       } else {
         console.log("File uploaded!", data.path);
@@ -94,12 +105,24 @@ const Messages = () => {
           "Content-Type": "application/json",
         },
       })
-      .then(async () => await refetchMessages())
-      .catch((err) => console.log(`Post req - ${err}`));
-
-    setMessage("");
-    setImage("");
-    setSubmitting(false);
+      .then(async () => {
+        await refetchMessages();
+      })
+      .catch((err) => {
+        console.log(`Post req - ${err}`);
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" /> <span>Could not send message!</span>
+          </div>,
+          "error"
+        );
+      })
+      .finally(() => {
+        setMessage("");
+        setImage("");
+        setSubmitting(false);
+      });
   };
 
   const readMessages = async (senderID, el) => {
@@ -119,6 +142,49 @@ const Messages = () => {
       .catch((err) => console.log(`Delete req - ${err}`));
   };
 
+  const deleteMessage = async (id, image) => {
+    if (image) {
+      const { data } = await supabase.storage.from("imgs").list("messages");
+      const curFile = data.find((el) => image.includes(el.name));
+      const { data: deletedData, error: deletedError } = await supabase.storage
+        .from("imgs")
+        .remove([`messages/${curFile.name}`]);
+
+      if (deletedError) {
+        console.log("Could not remove the file...", deletedError);
+      } else {
+        console.log("File removed successfully!", deletedData);
+      }
+    }
+    await api
+      .delete(`/messages/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(async () => {
+        await refetch();
+        setStatus("success");
+        notifyContext(
+          <div className="flex items-center">
+            <GiClusterBomb className="mr-2" /> <span>Message deleted!</span>
+          </div>,
+          "success"
+        );
+      })
+      .catch((err) => {
+        console.log(`Delete req - ${err}`);
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" /> <span>Could not delete message!</span>
+          </div>,
+          "error"
+        );
+      });
+  };
+
   const messagesCheck = messageList?.find(
     (el) =>
       (currentUser.id === el.senderID && msgRecipient?.id === el.recipientID) ||
@@ -132,7 +198,7 @@ const Messages = () => {
   if (loading) return <Loading font="text-[2rem]" icon="w-[5rem] h-[5rem]" />;
 
   return (
-    <div className="xl:w-[60rem] min-h-[40rem] grid grid-cols-[1fr,2fr] gap-x-5 mt-10 bg-black bg-opacity-50 rounded-lg p-4 justify-items-center">
+    <div className="w-[min(60rem,90%)] min-h-[40rem] grid grid-cols-[1fr,2fr] gap-x-5 mt-10 rounded-lg p-4 justify-items-center bg-black/80">
       <div>
         {userList?.map((el) => {
           const filteredMessages = messageList?.find(
@@ -157,12 +223,11 @@ const Messages = () => {
             return (
               <div
                 key={el.id}
-                className={`col-start-1 col-end-2 my-5 flex items-center w-full border bg-gradient-to-b from-gray-600/40 via-transparent to-gray-600/40 border-white p-5 hover:cursor-pointer relative rounded-md shadow-lg shadow-white/50 ${
-                  !filteredMessages &&
-                  "opacity-50 text-gray-600 !shadow-gray-600 !from-gray-600/50 !via-transparent !to-gray-600/50"
+                className={`col-start-1 col-end-2 my-5 flex items-center w-full border bg-gradient-to-b from-fuchsia-800/40 via-transparent to-fuchsia-800/40 border-fuchsia-600/50 p-5 hover:cursor-pointer relative rounded-md shadow-lg shadow-fuchsia-400/30 opacity-80 ${
+                  !filteredMessages && "!opacity-50 text-fuchsia-600"
                 } ${
                   msgRecipient === el &&
-                  "border-yellow-500 text-yellow-500 border-2 !shadow-yellow-500 !from-yellow-500/20 !via-transparent !to-yellow-500/20"
+                  "text-fuchsia-400 border-2 !shadow-fuchsia-400 from-fuchsia-600/60 via-black/50 to-fuchsia-600/6 !opacity-100"
                 }`}
                 onClick={() => readMessages(el.id, el)}>
                 {el.admin && <FcVip className="w-5 h-5 mr-1" />}
@@ -184,18 +249,22 @@ const Messages = () => {
       </div>
       {!findFriends && !msgRecipient && (
         <div className="flex flex-col self-start w-full items-center text-[0.7rem]">
-          <img src={tyjelk} alt="sholva" className="w-auto h-auto max-w-[20rem] max-h-[20rem]" />
-          <p>You have no friends. You can only message yourself for now.</p>
+          <img
+            src={tyjelk}
+            alt="sholva"
+            className="w-auto h-auto max-w-[20rem] max-h-[20rem] rounded-md"
+          />
+          <p className="mt-2">You have no friends. You can only message yourself for now.</p>
         </div>
       )}
       {msgRecipient && (
-        <div className="flex flex-col self-start w-full items-center bg-gradient-to-b rounded-lg from-gray-600/50 via-transparent to-gray-600/50 p-2">
-          <div className="flex justify-center items-center w-full border-b mt-5">
+        <div className="flex flex-col self-start w-full items-center bg-gradient-to-b rounded-lg from-fuchsia-800/50 via-transparent to-fuchsia-800/50 shadow-md shadow-fuchsia-400/50 p-2">
+          <div className="flex justify-center items-center w-full border-b border-fuchsia-300 mt-5">
             {msgRecipient.admin && <FcVip className="w-10 h-10 mr-2" />}
             <img
               src={msgRecipient.profilePicture}
               alt="Recipient"
-              className="w-auto h-auto max-w-[10rem] max-h-[5rem] mb-5"
+              className="w-auto h-auto max-w-[10rem] max-h-[5rem] mb-5 rounded-md"
             />
           </div>
           <div className="flex flex-col w-full overflow-auto">
@@ -217,6 +286,7 @@ const Messages = () => {
                       message={el.message !== "NULL" && el.message !== "" && el.message}
                       image={el.image !== "NULL" && el.image !== "" && el.image}
                       sender={currentUser.id === el.senderID ? true : false}
+                      deleteMessage={() => deleteMessage(el.id, el.image)}
                     />
                   );
               })
@@ -233,7 +303,7 @@ const Messages = () => {
                 id="message"
                 cols="30"
                 rows="10"
-                className="w-[95%] h-20 justify-self-end self-start ml-2 bg-transparent border border-white rounded-lg overflow-auto"
+                className="w-[95%] h-20 justify-self-end self-start ml-2 bg-black rounded-lg overflow-auto shadow-md shadow-fuchsia-400/50 focus:outline-none"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
@@ -265,8 +335,8 @@ const Messages = () => {
             <Button
               title={<BsFillArrowRightCircleFill />}
               submit
-              classes={`text-[2rem] max-w-[4rem] max-h-[4rem] self-center !border-none ${
-                ((!message && !image) || submitting) && "pointer-events-none opacity-50"
+              classes={`text-[2rem] max-w-[4rem] max-h-[4rem] self-center !border-none shadow-none bg-transparent ${
+                ((!message && !image) || submitting) && "pointer-events-none opacity-70"
               }`}
               onClick={() => {
                 sendMessage();

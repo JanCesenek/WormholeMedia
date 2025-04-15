@@ -1,22 +1,31 @@
-import React, { useState, useEffect, useRef } from "react";
-import classes from "./post.module.scss";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import Comment from "./comment";
 import Button from "../components/custom/Button";
 import Loading from "./custom/loading";
 import { api } from "../core/api";
 import { Form } from "react-router-dom";
 import { useUpdate } from "../hooks/use-update";
-import { GiGreatPyramid } from "react-icons/gi";
+import { GiGreatPyramid, GiRadioactive, GiClusterBomb } from "react-icons/gi";
 import { BsFillXCircleFill, BsFillFileImageFill } from "react-icons/bs";
 import { AiFillCloseCircle } from "react-icons/ai";
-import { supabase } from "../core/supabase";
-import { FaComments, FaCommentMedical, FaCommentSlash, FaPencilAlt, FaShare } from "react-icons/fa";
+import supabase from "../core/supabase";
+import {
+  FaComments,
+  FaCommentMedical,
+  FaCommentSlash,
+  FaPencilAlt,
+  FaShare,
+  FaSpaceShuttle,
+} from "react-icons/fa";
 import { BiMessageSquareAdd, BiMessageSquareEdit } from "react-icons/bi";
 import { v4 as uuid } from "uuid";
+import { NotificationContext } from "../context/NotificationContext";
 
 // Post component
 
 const Post = (props) => {
+  const { notifyContext, setStatus } = useContext(NotificationContext);
+
   const { refetch: refetchPosts, isLoading: postsLoading } = useUpdate("/posts");
   const {
     data: commentList,
@@ -83,6 +92,7 @@ const Post = (props) => {
 
   // Edit a post
   const editPostReq = async () => {
+    setSubmitting(true);
     const uniqueID = uuid();
     const handleEditedUpload = async () => {
       const { data, error } = await supabase.storage
@@ -137,8 +147,34 @@ const Post = (props) => {
           "Content-Type": "application/json",
         },
       })
-      .then(async () => await refetchPosts())
-      .catch((err) => console.log(`Patch req - ${err}`));
+      .then(async () => {
+        await refetchPosts();
+        setStatus("success");
+        notifyContext(
+          <div className="flex items-center">
+            <FaSpaceShuttle className="mr-2" /> <span>Post edited successfully!</span>
+          </div>,
+          "success"
+        );
+      })
+      .catch((err) => {
+        console.log(`Patch req - ${err}`);
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" /> <span>Could not edit the post!</span>
+          </div>,
+          "error"
+        );
+      })
+      .finally(() => {
+        setSubmitting(false);
+        editedFileInputRef.current.value = null;
+        setEditedImg(null);
+        setEditedMsg("");
+        setEditPost(false);
+        setDeletedPostPic(false);
+      });
   };
 
   // Get month name from createdAt, updatedAt
@@ -179,6 +215,7 @@ const Post = (props) => {
   // Deletes a post, only possible on user's profile
   const deleteReq = async () => {
     if (window.confirm("Really wanna delete the post?")) {
+      setSubmitting(true);
       if (props.image && !props.shared) {
         const { data: presentData } = await supabase.storage.from("imgs").list("posts");
         const curFile = presentData.find((el) => props.image.includes(el.name));
@@ -201,8 +238,29 @@ const Post = (props) => {
             "Content-Type": "application/json",
           },
         })
-        .then(async () => await refetchPosts())
-        .catch((err) => console.log(`Delete req err - ${err}`));
+        .then(async () => {
+          await refetchPosts();
+          setStatus("success");
+          notifyContext(
+            <div className="flex items-center">
+              <GiClusterBomb className="mr-2" /> <span>Post deleted successfully!</span>
+            </div>,
+            "success"
+          );
+        })
+        .catch((err) => {
+          console.log(`Delete req err - ${err}`);
+          setStatus("error");
+          notifyContext(
+            <div className="flex items-center">
+              <GiRadioactive className="mr-2" /> <span>Could not delete the post!</span>
+            </div>,
+            "error"
+          );
+        })
+        .finally(() => {
+          setSubmitting(false);
+        });
     }
   };
 
@@ -223,6 +281,7 @@ const Post = (props) => {
       userID: Number(id),
     };
 
+    setSubmitting(true);
     if (alreadyLiked) {
       await api
         .delete(`/likes/${alreadyLiked.id}`, {
@@ -264,6 +323,7 @@ const Post = (props) => {
         .then(async () => await refetchLikes())
         .catch((err) => console.log(`Post req err - ${err}`));
     }
+    setSubmitting(false);
   };
 
   // Dislikes a post
@@ -273,6 +333,7 @@ const Post = (props) => {
       userID: Number(id),
     };
 
+    setSubmitting(true);
     if (alreadyDisliked) {
       await api
         .delete(`/dislikes/${alreadyDisliked.id}`, {
@@ -314,6 +375,7 @@ const Post = (props) => {
         .then(async () => refetchDislikes())
         .catch((err) => console.log(`Post req err - ${err}`));
     }
+    setSubmitting(false);
   };
 
   // Creates a comment
@@ -333,8 +395,16 @@ const Post = (props) => {
 
       if (error) {
         console.log("Error uploading file...", error);
-        alert(
-          "Could not upload the file. A file with the same name most likely already exists. Try to rename the file and see if the issues persists!"
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" />{" "}
+            <span>
+              Could not upload the file. A file with the same name most likely already exists. Try
+              to rename the file and see if the issue persists!
+            </span>
+          </div>,
+          "error"
         );
       } else {
         console.log("File uploaded!", data.path);
@@ -363,14 +433,33 @@ const Post = (props) => {
           "Content-Type": "application/json",
         },
       })
-      .then(async () => await refetchComments())
-      .catch((err) => console.log(`Post req err - ${err}`));
-
-    setImage("");
-    setMessage("");
-    setAddComment(false);
-    setComments(true);
-    setSubmitting(false);
+      .then(async () => {
+        await refetchComments();
+        setStatus("success");
+        notifyContext(
+          <div className="flex items-center">
+            <FaSpaceShuttle className="mr-2" /> <span>Comment added successfully!</span>
+          </div>,
+          "success"
+        );
+      })
+      .catch((err) => {
+        console.log(`Post req err - ${err}`);
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" /> <span>Could not add the comment!</span>
+          </div>,
+          "error"
+        );
+      })
+      .finally(() => {
+        setImage("");
+        setMessage("");
+        setAddComment(false);
+        setComments(true);
+        setSubmitting(false);
+      });
   };
 
   let count = 0;
@@ -378,7 +467,7 @@ const Post = (props) => {
   const toggleShare = () => {
     setComments(false);
     setAddComment(false);
-    setSharing(true);
+    setSharing(!sharing);
   };
 
   const sharePost = async () => {
@@ -401,11 +490,31 @@ const Post = (props) => {
           "Content-Type": "application/json",
         },
       })
-      .then(async () => await refetchPosts())
-      .catch((err) => console.log(`Post req - ${err}`));
-    setSubmitting(false);
-    setSharedMessage("");
-    setSharing(false);
+      .then(async () => {
+        await refetchPosts();
+        setStatus("success");
+        notifyContext(
+          <div className="flex items-center">
+            <FaSpaceShuttle className="mr-2" /> <span>Post shared successfully!</span>
+          </div>,
+          "success"
+        );
+      })
+      .catch((err) => {
+        console.log(`Post req - ${err}`);
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" /> <span>Could not share the post!</span>
+          </div>,
+          "error"
+        );
+      })
+      .finally(() => {
+        setSubmitting(false);
+        setSharedMessage("");
+        setSharing(false);
+      });
   };
 
   // Checks if post has been updated or not
@@ -414,7 +523,10 @@ const Post = (props) => {
   if (loading) return <Loading font="text-[1rem]" icon="w-[3rem] h-[3rem]" />;
 
   return editPost ? (
-    <div className="flex flex-col bg-black bg-opacity-50 p-2 border border-white rounded-md shadow-lg shadow-white">
+    <div
+      className={`flex flex-col bg-black/80 p-5 border border-fuchsia-600/20 rounded-md shadow-lg shadow-fuchsia-600/50 [&>*]:my-2 w-[min(90%,40rem)] ${
+        submitting && "opacity-70 pointer-events-none"
+      }`}>
       <div className="flex items-center">
         <label htmlFor="msg">Message:</label>
         <textarea
@@ -422,11 +534,11 @@ const Post = (props) => {
           id="msg"
           defaultValue={props.message}
           onChange={(e) => setEditedMsg(e.target.value)}
-          className="w-[20rem] h-[10rem] bg-transparent border border-white rounded-md ml-2"></textarea>
+          className="w-[20rem] h-[10rem] bg-transparent border border-fuchsia-600/20 rounded-md ml-5 shadow-md shadow-fuchsia-400/50 focus:outline-none"></textarea>
       </div>
       <div className="flex items-center">
         <p>Image:</p>
-        <label htmlFor="img" className="flex ml-2 my-2 hover:cursor-pointer">
+        <label htmlFor="img" className="flex ml-10 my-2 hover:cursor-pointer">
           <BsFillFileImageFill /> Upload image {editedImg && "uploaded img"}
         </label>
         <input
@@ -457,34 +569,33 @@ const Post = (props) => {
           />
         )}
       </div>
-      <div className="flex self-center">
+      <div className="flex self-center [&>*]:mx-2">
         <Button
           submit
           title="Submit"
           classes={!editedMsg && !editedImg && "pointer-events-none opacity-50"}
-          onClick={() => {
-            editPostReq();
-            editedFileInputRef.current.value = null;
-            setEditedImg(null);
-            setEditedMsg("");
-            setEditPost(false);
-            setDeletedPostPic(false);
-          }}
+          onClick={editPostReq}
         />
         <Button title="Back" onClick={() => setEditPost(false)} />
       </div>
     </div>
   ) : (
-    <div className={`${props.shared ? classes.postShared : classes.post} shadow-lg shadow-white`}>
+    <div
+      className={`relative grid justify-items-center items-center gap-y-2 ${
+        props.shared
+          ? "grid-rows-[min-content,0.5rem,8rem,min-content]"
+          : "grid-rows-[0.5rem,8rem,min-content]"
+      } grid-cols-[2fr,2fr,6fr] border border-fuchsia-600/20 rounded-md w-[min(90%,40rem)] text-[0.8rem] sm:text-[1rem] p-4 bg-black/90 mb-20
+       shadow-lg shadow-fuchsia-600 ${submitting && "opacity-70 pointer-events-none"}`}>
       {props.shared && (
-        <div className="flex flex-col justify-center w-full col-span-full p-5 mb-5 border-yellow-400 border-b-4">
+        <div className="flex flex-col justify-center col-span-full p-5 mb-5 border-fuchsia-400 border-b-4">
           <div className="flex justify-around items-center mx-2">
             <img
               src={personSharing?.profilePicture}
               alt="profilePic"
               className="w-auto h-auto max-w-[5rem] max-h-[5rem] rounded-lg"
             />
-            <p className="font-bold text-yellow-400">
+            <p className="font-bold text-fuchsia-400">
               {personSharing?.firstName} {personSharing?.lastName} shared this post{" "}
               {props.sharedMessage && "saying:"}
             </p>
@@ -496,14 +607,14 @@ const Post = (props) => {
       )}
       {(props.profile || admin) && (
         <div className="absolute top-5 right-5 hover:cursor-pointer" onClick={deleteReq}>
-          <BsFillXCircleFill className="w-5 h-5 text-yellow-600" />
+          <BsFillXCircleFill className="w-5 h-5 text-fuchsia-800" />
         </div>
       )}
       {props.profile && !props.shared && (
         <div
           className="absolute top-5 right-20 hover:cursor-pointer"
           onClick={() => setEditPost(true)}>
-          <FaPencilAlt className="w-5 h-5 text-yellow-600" />
+          <FaPencilAlt className="w-5 h-5 text-fuchsia-800" />
         </div>
       )}
       <div className="col-span-full w-full h-full text-[0.5rem] flex justify-center items-center">
@@ -517,14 +628,14 @@ const Post = (props) => {
           {time.slice(11, 19)}
         </div>
       </div>
-      <div className="w-full h-full flex justify-center items-center border-b border-white">
+      <div className="w-full h-full flex justify-center items-center border-b border-fuchsia-300">
         <img
           src={props.shared ? postOwner?.profilePicture : props.profilePicture}
           alt="profilePic"
           className="w-auto h-auto max-w-full max-h-full rounded-lg"
         />
       </div>
-      <div className="text-3xl col-start-2 col-end-4 border-b border-white w-full h-full flex justify-center items-center">
+      <div className="text-3xl col-start-2 col-end-4 border-b border-fuchsia-300 w-full h-full flex justify-center items-center">
         <h1>
           {props.shared ? postOwner?.firstName : props.firstName}{" "}
           {props.shared ? postOwner?.lastName : props.lastName}
@@ -540,7 +651,7 @@ const Post = (props) => {
       {props.message !== "NULL" && props.message !== "" && (
         <p className="col-span-full">{props.message}</p>
       )}
-      <div className="flex items-center justify-center w-full h-full border-t border-white py-2 relative">
+      <div className="flex items-center justify-center w-full h-full border-t border-fuchsia-300 py-2 relative">
         <p
           onMouseEnter={() => {
             setLikedUsers(true);
@@ -558,7 +669,7 @@ const Post = (props) => {
           {likeCount()}{" "}
         </p>
         {likedUsers && likeCount() > 0 && (
-          <div className="absolute flex flex-col w-[10rem] h-20 text-[0.6rem] p-2 bg-black border border-white rounded-md top-[4rem]">
+          <div className="absolute flex flex-col w-[10rem] h-20 text-[0.6rem] p-2 bg-black border border-fuchsia-300 rounded-md top-[4rem]">
             Liked by:
             {userList.map((el) => {
               const userLikedPost = likeList.find(
@@ -579,7 +690,7 @@ const Post = (props) => {
           </div>
         )}
         {clickLikedUsers && likeCount() > 0 && (
-          <div className="absolute flex flex-col justify-center items-center [&>*]:mb-2 w-[10rem] h-auto text-[0.5rem] p-2 bg-black z-50 border border-white rounded-md top-[4rem]">
+          <div className="absolute flex flex-col justify-center items-center [&>*]:mb-2 w-[10rem] h-auto text-[0.5rem] p-2 bg-black z-50 border border-fuchsia-300 rounded-md top-[4rem]">
             {userList.map((el) => {
               const userLikedPost = likeList.find(
                 (like) => like.postID === props.postID && like.userID === el.id
@@ -602,11 +713,11 @@ const Post = (props) => {
           </div>
         )}
         <GiGreatPyramid
-          className="w-10 h-10 ml-2 hover:cursor-pointer text-yellow-600"
+          className="w-10 h-10 ml-2 hover:cursor-pointer text-fuchsia-800"
           onClick={toggleLike}
         />
       </div>
-      <div className="flex items-center justify-center w-full h-full border-t border-white py-2 relative">
+      <div className="flex items-center justify-center w-full h-full border-t border-fuchsia-300 py-2 relative">
         <p
           onMouseEnter={() => {
             setDislikedUsers(true);
@@ -624,7 +735,7 @@ const Post = (props) => {
           {dislikeCount()}{" "}
         </p>
         {dislikedUsers && dislikeCount() > 0 && (
-          <div className="absolute flex flex-col w-[10rem] h-20 text-[0.6rem] p-2 bg-black border border-white rounded-md top-[4rem]">
+          <div className="absolute flex flex-col w-[10rem] h-20 text-[0.6rem] p-2 bg-black border border-fuchsia-300 rounded-md top-[4rem]">
             Disliked by:
             {userList.map((el) => {
               const userDislikedPost = dislikeList.find(
@@ -645,7 +756,7 @@ const Post = (props) => {
           </div>
         )}
         {clickDislikedUsers && dislikeCount() > 0 && (
-          <div className="absolute flex flex-col justify-center items-center [&>*]:mb-2 w-[10rem] h-auto text-[0.5rem] p-2 bg-black z-50 border border-white rounded-md top-[4rem]">
+          <div className="absolute flex flex-col justify-center items-center [&>*]:mb-2 w-[10rem] h-auto text-[0.5rem] p-2 bg-black z-50 border border-fuchsia-300 rounded-md top-[4rem]">
             {userList.map((el) => {
               const userDislikedPost = dislikeList.find(
                 (dislike) => dislike.postID === props.postID && dislike.userID === el.id
@@ -668,27 +779,31 @@ const Post = (props) => {
           </div>
         )}
         <GiGreatPyramid
-          className="w-10 h-10 ml-2 rotate-180 hover:cursor-pointer text-yellow-600"
+          className="w-10 h-10 ml-2 rotate-180 hover:cursor-pointer text-fuchsia-800"
           onClick={toggleDislike}
         />
       </div>
-      <div className="flex items-center justify-around w-full h-full border-t border-white py-2">
+      <div className="flex items-center justify-around w-full h-full border-t border-fuchsia-300 py-2">
         <div
           className="flex items-center justify-center hover:cursor-pointer"
-          onClick={() => setComments(!comments)}>
+          onClick={() => {
+            setComments(!comments);
+            setAddComment(false);
+            setSharing(false);
+          }}>
           <p className="mr-2">Comments{commentCount() > 0 ? ` : ${commentCount()}` : " : 0"}</p>{" "}
-          <FaComments className="w-10 h-10 text-yellow-600 ml-2" />
+          <FaComments className="w-10 h-10 text-fuchsia-800 ml-2" />
         </div>
         {!props.profile && id !== props.userID && !props.shared && (
           <div
             className="flex items-center justify-center hover:cursor-pointer"
             onClick={() => toggleShare()}>
             <p className="mr-2">Share</p>
-            <FaShare className="w-10 h-10 text-yellow-600 ml-2" />
+            <FaShare className="w-10 h-10 text-fuchsia-800 ml-2" />
           </div>
         )}
       </div>
-      <div className="col-span-full w-full flex flex-col">
+      <div className="col-span-full w-full flex flex-col items-center">
         {comments &&
           commentList.map((el) => {
             const userMatch = userList.find((user) => user.id === el.userID);
@@ -707,9 +822,14 @@ const Post = (props) => {
               );
           })}
         <div className="self-center mt-2 flex flex-col items-center">
-          <div onClick={() => setAddComment(!addComment)}>
+          <div
+            onClick={() => {
+              setAddComment(!addComment);
+              setComments(false);
+              setSharing(false);
+            }}>
             <Button
-              classes="!border-none text-yellow-600 !bg-transparent"
+              classes="!border-none text-fuchsia-800 !bg-transparent shadow-none"
               title={
                 addComment ? (
                   <FaCommentSlash className="w-5 h-5" />
@@ -720,7 +840,7 @@ const Post = (props) => {
             />
           </div>
           {addComment && (
-            <Form className="flex flex-col mt-2 border border-white rounded-lg p-2 [&>*]:mt-2">
+            <Form className="flex flex-col mt-2 border border-fuchsia-600/20 rounded-lg p-5 [&>*]:my-2 shadow-md shadow-fuchsia-400/50">
               <div className="flex items-center">
                 <label htmlFor="message">Message:</label>
                 <textarea
@@ -728,7 +848,7 @@ const Post = (props) => {
                   id="message"
                   cols="30"
                   rows="10"
-                  className="max-w-[20rem] max-h-[3rem] bg-transparent border border-white rounded-lg ml-2"
+                  className="max-w-[20rem] max-h-[5rem] bg-transparent border border-fuchsia-600/20 shadow-md shadow-fuchsia-600/50 rounded-md ml-2 focus:outline-none"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                 />
@@ -772,7 +892,7 @@ const Post = (props) => {
             </Form>
           )}
           {sharing && (
-            <Form className="flex flex-col mt-2 border border-white rounded-lg p-2 [&>*]:mt-2">
+            <Form className="flex flex-col mt-2 border border-fuchsia-600/20 shadow-md shadow-fuchsia-600/50 rounded-lg p-5 [&>*]:mt-2">
               <div className="flex items-center">
                 <label htmlFor="message">Message (voluntary):</label>
                 <textarea
@@ -780,7 +900,7 @@ const Post = (props) => {
                   id="message"
                   cols="30"
                   rows="10"
-                  className="max-w-[20rem] max-h-[3rem] bg-transparent border border-white rounded-lg ml-2"
+                  className="max-w-[20rem] max-h-[3rem] bg-transparent border border-fuchsia-600/20 shadow-md shadow-fuchsia-600/50 rounded-lg ml-2 focus:outline-none"
                   value={sharedMessage}
                   onChange={(e) => setSharedMessage(e.target.value)}
                 />
@@ -788,8 +908,8 @@ const Post = (props) => {
               <Button
                 title={submitting ? "Sharing..." : "Share"}
                 submit
-                classes={`self-center ${submitting && "pointer-events-none opacity-50"}`}
-                onClick={() => sharePost()}
+                classes={`self-center !mt-5 ${submitting && "pointer-events-none opacity-50"}`}
+                onClick={sharePost}
               />
             </Form>
           )}

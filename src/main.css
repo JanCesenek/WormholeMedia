@@ -7,12 +7,17 @@ body {
   font-family: "Orbitron", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-    url("./imgs/Background.jpg");
+  background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.95),
+      rgba(0, 0, 0, 0.8) 80%,
+      rgba(192, 38, 211, 0.2) 110%
+    ),
+    url("./imgs/SpaceshipBackground.jpeg");
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  color: white;
+  color: rgb(245, 208, 254);
 }
 
 code {
@@ -20,13 +25,13 @@ code {
 }
 
 body::-webkit-scrollbar {
-  width: 1rem;
+  width: 0.5rem;
 }
 body::-webkit-scrollbar-track {
   background: black;
 }
 body::-webkit-scrollbar-thumb {
-  background: gold;
+  background: fuchsia;
 }
 
 @media (max-width: 1200px) {
@@ -44,5 +49,11 @@ body::-webkit-scrollbar-thumb {
 @media (max-width: 600px) {
   html {
     font-size: 50%;
+  }
+}
+
+@media (min-width: 2200px) {
+  html {
+    font-size: 125%;
   }
 }

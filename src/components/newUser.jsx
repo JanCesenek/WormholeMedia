@@ -1,16 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { Form, useNavigate } from "react-router-dom";
 import Button from "./custom/Button";
 import { api } from "../core/api";
-import { supabase } from "../core/supabase";
+import supabase from "../core/supabase";
 import UseInput from "../hooks/use-input";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { BsFillEyeFill, BsFillEyeSlashFill, BsFillFileImageFill } from "react-icons/bs";
 import { useUpdate } from "../hooks/use-update";
 import Submitting from "./custom/submitting";
 import { v4 as uuid } from "uuid";
+import { FaSpaceShuttle } from "react-icons/fa";
+import { GiRadioactive } from "react-icons/gi";
+import { NotificationContext } from "../context/NotificationContext";
 
 const NewUser = (props) => {
+  const { notifyContext, setStatus } = useContext(NotificationContext);
+
   // Variables ensuring correct validation in frontend, won't allow user to submit a form until conditions are met
   const {
     value: firstNameValue,
@@ -154,14 +159,23 @@ const NewUser = (props) => {
     return age;
   };
 
-  const createNewUser = async () => {
+  const createNewUser = async (e) => {
+    e.preventDefault();
+
     const uniqueID = uuid();
     const firstName = firstNameValue[0]?.toUpperCase() + firstNameValue?.slice(1).toLowerCase();
     const lastName = lastNameValue[0]?.toUpperCase() + lastNameValue?.slice(1).toLowerCase();
     const username = usernameValue[0]?.toUpperCase() + usernameValue?.slice(1).toLowerCase();
 
     if (getAge(birthDateValue) > 105) {
-      alert("You can't be that old! Try again, inputting a realistic date birth instead...");
+      setStatus("error");
+      notifyContext(
+        <div className="flex items-center">
+          <GiRadioactive className="mr-2" />{" "}
+          <span>You can't be that old! There is no bigger number than 105!</span>
+        </div>,
+        "error"
+      );
       resetForm();
       return;
     }
@@ -183,8 +197,13 @@ const NewUser = (props) => {
 
       if (error) {
         console.log("Error uploading file...", error);
-        alert(
-          "Could not upload the file. A file with the same name most likely already exists. Try to rename the file and see if the issues persists!"
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" />{" "}
+            <span>A file with that name already exists! Couldn't upload. Try again...</span>
+          </div>,
+          "error"
         );
       } else {
         console.log("File uploaded!", data.path);
@@ -221,11 +240,28 @@ const NewUser = (props) => {
         addBearerToken(token);
         localStorage.setItem("token", token);
         localStorage.setItem("curUser", username);
+        setStatus("success");
+        notifyContext(
+          <div className="flex items-center">
+            <FaSpaceShuttle className="mr-2" />{" "}
+            <span>Welcome to the enlightened club, {username}!</span>
+          </div>,
+          "login"
+        );
         resetForm();
         fileInputRef.current.value = null;
         navigate(`${username}/profile`);
       })
-      .catch((err) => console.log(`Post req err - ${err}`));
+      .catch((err) => {
+        console.log(`Post req err - ${err}`);
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" /> <span>Invalid credentials!</span>
+          </div>,
+          "error"
+        );
+      });
     setIsSubmitting(false);
   };
 
@@ -240,9 +276,9 @@ const NewUser = (props) => {
     originIsValid;
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-[40rem] text-[0.7rem] mt-5 bg-black bg-opacity-50 px-5 py-2 rounded-2xl border border-white">
-        <h2 className="text-[1rem] text-center">Validation rules:</h2>
+    <div className="flex flex-col items-center w-[min(40rem,90%)]">
+      <div className="text-[1.2rem] my-5 bg-black/70 px-5 py-2 rounded-md shadow-md shadow-fuchsia-600/50 w-full">
+        <h2 className="text-[1.5rem] text-center text-fuchsia-400">Validation rules:</h2>
         <p>
           First name, Last name, Race, Occupation, Place of origin: 2-30 characters, letters only
         </p>
@@ -251,14 +287,14 @@ const NewUser = (props) => {
           Password: 8-16 characters, must contain lower+uppercase, number and a special character
         </p>
         <p>Profile pic: voluntary, if none provided, default will be used based on gender</p>
-        <p className="text-yellow-400 font-bold">
+        <p className="text-fuchsia-600 font-bold">
           Note: It won't be possible to submit the form until the conditions are met!
         </p>
       </div>
-      <div className="w-[40rem] border rounded-md mt-5 bg-black bg-opacity-50">
-        <Form className="flex flex-col items-start [&>*]:my-1 p-2">
+      <div className="rounded-md my-5 bg-black/70 text-[1.5rem] shadow-lg shadow-fuchsia-600/50 border border-fuchsia-600/20 w-full">
+        <Form className="flex flex-col items-start [&>*]:my-2 p-5">
           <div className="flex">
-            <label htmlFor="firstName" className="min-w-[10rem] ml-2">
+            <label htmlFor="firstName" className="min-w-[15rem] ml-2">
               First name:
             </label>
             <input
@@ -268,13 +304,13 @@ const NewUser = (props) => {
               value={firstNameValue}
               onChange={firstNameChangeHandler}
               onBlur={firstNameBlurHandler}
-              className={`bg-transparent border border-white ${
-                firstNameHasError && "!border-red-600"
+              className={`bg-transparent shadow-md shadow-fuchsia-600/50 border border-fuchsia-600/20 focus:outline-none w-1/2 ${
+                firstNameHasError && "!border-fuchsia-800 animate-pulse"
               }`}
             />
           </div>
           <div className="flex">
-            <label htmlFor="lastName" className="min-w-[10rem] ml-2">
+            <label htmlFor="lastName" className="min-w-[15rem] ml-2">
               Last name:
             </label>
             <input
@@ -284,13 +320,13 @@ const NewUser = (props) => {
               value={lastNameValue}
               onChange={lastNameChangeHandler}
               onBlur={lastNameBlurHandler}
-              className={`bg-transparent border border-white ${
-                lastNameHasError && "!border-red-600"
+              className={`bg-transparent shadow-md shadow-fuchsia-600/50 border border-fuchsia-600/20 focus:outline-none w-1/2 ${
+                lastNameHasError && "!border-fuchsia-800 animate-pulse"
               }`}
             />
           </div>
           <div className="flex">
-            <label htmlFor="username" className="min-w-[10rem] ml-2">
+            <label htmlFor="username" className="min-w-[15rem] ml-2">
               Username:
             </label>
             <input
@@ -300,13 +336,13 @@ const NewUser = (props) => {
               value={usernameValue}
               onChange={usernameChangeHandler}
               onBlur={usernameBlurHandler}
-              className={`bg-transparent border border-white ${
-                usernameHasError && "!border-red-600"
+              className={`bg-transparent shadow-md shadow-fuchsia-600/50 border border-fuchsia-600/20 focus:outline-none w-1/2 ${
+                usernameHasError && "!border-fuchsia-800 animate-pulse"
               }`}
             />
           </div>
           <div className="flex">
-            <label htmlFor="password" className="min-w-[10rem] ml-2">
+            <label htmlFor="password" className="min-w-[15rem] ml-2">
               Password:
             </label>
             <input
@@ -316,8 +352,8 @@ const NewUser = (props) => {
               value={passwordValue}
               onChange={passwordChangeHandler}
               onBlur={passwordBlurHandler}
-              className={`bg-transparent border border-white ${
-                passwordHasError && "!border-red-600"
+              className={`bg-transparent shadow-md shadow-fuchsia-600/50 border border-fuchsia-600/20 focus:outline-none w-1/2 ${
+                passwordHasError && "!border-fuchsia-800 animate-pulse"
               }`}
             />
             {passwordVisibility ? (
@@ -333,7 +369,7 @@ const NewUser = (props) => {
             )}
           </div>
           <div className="flex">
-            <label htmlFor="birthDate" className="min-w-[10rem] ml-2">
+            <label htmlFor="birthDate" className="min-w-[15rem] ml-2">
               Birth date:
             </label>
             <input
@@ -343,13 +379,13 @@ const NewUser = (props) => {
               value={birthDateValue}
               onChange={birthDateChangeHandler}
               onBlur={birthDateBlurHandler}
-              className={`bg-transparent border border-white ${
-                birthDateHasError && "!border-red-600"
+              className={`bg-transparent shadow-md shadow-fuchsia-600/50 border border-fuchsia-600/20 focus:outline-none w-1/2 ${
+                birthDateHasError && "!border-fuchsia-800 animate-pulse"
               }`}
             />
           </div>
           <div className="flex">
-            <label htmlFor="race" className="min-w-[10rem] ml-2">
+            <label htmlFor="race" className="min-w-[15rem] ml-2">
               Race:
             </label>
             <input
@@ -359,11 +395,13 @@ const NewUser = (props) => {
               value={raceValue}
               onChange={raceChangeHandler}
               onBlur={raceBlurHandler}
-              className={`bg-transparent border border-white ${raceHasError && "!border-red-600"}`}
+              className={`bg-transparent shadow-md shadow-fuchsia-600/50 border border-fuchsia-600/20 focus:outline-none w-1/2 ${
+                raceHasError && "!border-fuchsia-800 animate-pulse"
+              }`}
             />
           </div>
           <div className="flex">
-            <label htmlFor="occupation" className="min-w-[10rem] ml-2">
+            <label htmlFor="occupation" className="min-w-[15rem] ml-2">
               Occupation:
             </label>
             <input
@@ -373,14 +411,16 @@ const NewUser = (props) => {
               value={occupationValue}
               onChange={occupationChangeHandler}
               onBlur={occupationBlurHandler}
-              className={`bg-transparent border border-white ${
-                occupationHasError && "!border-red-600"
+              className={`bg-transparent shadow-md shadow-fuchsia-600/50 border border-fuchsia-600/20 focus:outline-none w-1/2 ${
+                occupationHasError && "!border-fuchsia-800 animate-pulse"
               }`}
             />
           </div>
           <div className="flex items-center max-w-[30rem]">
-            <p className="min-w-[10rem] ml-2">Profile picture:</p>
-            <label htmlFor="pic" className="flex w-[15rem] text-[0.7rem] hover:cursor-pointer">
+            <p className="min-w-[15rem] ml-2">Profile picture:</p>
+            <label
+              htmlFor="pic"
+              className="flex items-center w-[15rem] text-[1rem] hover:cursor-pointer">
               <BsFillFileImageFill /> Upload image {profilePic && "uploaded img"}
             </label>
             <input
@@ -404,7 +444,7 @@ const NewUser = (props) => {
             )}
           </div>
           <div className="flex">
-            <label htmlFor="origin" className="min-w-[10rem] ml-2">
+            <label htmlFor="origin" className="min-w-[15rem] ml-2">
               Place of origin:
             </label>
             <input
@@ -414,13 +454,13 @@ const NewUser = (props) => {
               value={originValue}
               onChange={originChangeHandler}
               onBlur={originBlurHandler}
-              className={`bg-transparent border border-white ${
-                originHasError && "!border-red-600"
+              className={`bg-transparent shadow-md shadow-fuchsia-600/50 border border-fuchsia-600/20 focus:outline-none w-1/2 ${
+                originHasError && "!border-fuchsia-800 animate-pulse"
               }`}
             />
           </div>
           <div className="flex">
-            <label htmlFor="gender" className="min-w-[10rem] ml-2">
+            <label htmlFor="gender" className="min-w-[15rem] ml-2">
               Gender:
             </label>
             <select
@@ -428,7 +468,7 @@ const NewUser = (props) => {
               id="gender"
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              className="text-black">
+              className="shadow-md shadow-fuchsia-600/50 border border-fuchsia-600/20 focus:outline-none bg-transparent">
               <option value="M">M</option>
               <option value="F">F</option>
             </select>
@@ -443,8 +483,8 @@ const NewUser = (props) => {
         </Form>
       </div>
       {isSubmitting && <Submitting />}
-      <p className="mt-5 text-yellow-500 underline hover:cursor-pointer" onClick={props.link}>
-        Back
+      <p className="my-5 text-fuchsia-400 underline hover:cursor-pointer" onClick={props.link}>
+        Already have an account? Click here to log in.
       </p>
     </div>
   );

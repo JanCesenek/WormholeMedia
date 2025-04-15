@@ -1,10 +1,11 @@
 import React from "react";
-import classes from "./Button.module.scss";
 
 const Button = (props) => {
   return (
     <button
-      className={`${classes.btn} ${props.classes ? props.classes : undefined}`}
+      className={`px-5 py-2 bg-black/70 shadow-md shadow-fuchsia-600/50 text-fuchsia-600 ${
+        props.classes ? props.classes : undefined
+      }`}
       type={props.submit ? "submit" : "button"}
       onClick={props.onClick}
       disabled={props.disabled}>

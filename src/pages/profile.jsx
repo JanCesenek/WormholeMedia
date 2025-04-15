@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { Form, useNavigate } from "react-router-dom";
 import PersonalDetails from "../components/personalDetails";
 import Posts from "../components/posts";
 import Button from "../components/custom/Button";
 import { api } from "../core/api";
 import { useUpdate } from "../hooks/use-update";
-import { supabase } from "../core/supabase";
+import supabase from "../core/supabase";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { BsFillFileImageFill } from "react-icons/bs";
 import {
@@ -16,13 +16,18 @@ import {
   FaUserMinus,
   FaUserLock,
   FaUnlockAlt,
+  FaSpaceShuttle,
 } from "react-icons/fa";
+import { GiRadioactive } from "react-icons/gi";
 import Loading from "../components/custom/loading";
 import { v4 as uuid } from "uuid";
+import { NotificationContext } from "../context/NotificationContext";
 
 // Profile page - shows user's personal details as well as his own posts that can be edited or deleted
 
 const Profile = (props) => {
+  const { notifyContext, setStatus } = useContext(NotificationContext);
+
   const { data: userList, isLoading: usersLoading } = useUpdate("/users");
   const {
     data: friendList,
@@ -128,17 +133,61 @@ const Profile = (props) => {
           "Content-Type": "application/json",
         },
       })
-      .then(async () => await refetchPosts())
-      .catch((err) => console.log(`Post req err - ${err}`));
+      .then(async () => {
+        await refetchPosts();
+        setStatus("success");
+        notifyContext(
+          <div className="flex items-center">
+            <FaSpaceShuttle className="mr-2" /> <span>Post created!</span>
+          </div>,
+          "success"
+        );
+      })
+      .catch((err) => {
+        console.log(`Post req err - ${err}`);
+        setStatus("error");
+        notifyContext(
+          <div className="flex items-center">
+            <GiRadioactive className="mr-2" /> <span>Post creation failed!</span>
+          </div>,
+          "error"
+        );
+      })
+      .finally(() => {
+        setMessage("");
+        setImage("");
+        setAddPost(false);
+        setSubmitting(false);
+      });
+  };
 
-    setMessage("");
-    setImage("");
-    setAddPost(false);
-    setSubmitting(false);
+  // Unblock another user
+  const unblockUser = async () => {
+    const id = isBlocked?.id;
+    const blocker = loggedInUser?.id;
+    setSubmitting(true);
+    await api
+      .delete(`/blockList/${id}/${blocker}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then(async () => {
+        await refetchBlockList();
+      })
+      .catch((err) => {
+        console.log(`Delete req - ${err}`);
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
   };
 
   // Send friend request to another user
   const sendFriendRequest = async () => {
+    setSubmitting(true);
+    if (isBlocked) unblockUser();
     const postReqPayload = {
       sender: loggedInUser?.id,
       recipient: currentUser?.id,
@@ -150,13 +199,19 @@ const Profile = (props) => {
           "Content-Type": "application/json",
         },
       })
-      .then(async () => await refetchRequests())
-      .catch((err) => console.log(`Post req - ${err}`));
+      .then(async () => {
+        await refetchRequests();
+      })
+      .catch((err) => {
+        console.log(`Post req - ${err}`);
+      });
+    setSubmitting(false);
   };
 
   // Function for handling friend requests - both accepting and deleting
   const friendRequestHandler = async (id, value, status) => {
     const sender = currentUser?.id;
+    setSubmitting(true);
     await api
       .delete(`/friendRequests/${id}/${sender}/${value}`, {
         headers: {
@@ -164,8 +219,12 @@ const Profile = (props) => {
           "Content-Type": "application/json",
         },
       })
-      .then(async () => await refetchRequests())
-      .catch((err) => console.log(`Delete req - ${err}`));
+      .then(async () => {
+        await refetchRequests();
+      })
+      .catch((err) => {
+        console.log(`Delete req - ${err}`);
+      });
 
     if (status) {
       const postReqPayload = {
@@ -179,13 +238,19 @@ const Profile = (props) => {
             "Content-Type": "application/json",
           },
         })
-        .then(async () => await refetchFriendList())
-        .catch((err) => console.log(`Post req - ${err}`));
+        .then(async () => {
+          await refetchFriendList();
+        })
+        .catch((err) => {
+          console.log(`Post req - ${err}`);
+        });
     }
+    setSubmitting(false);
   };
 
   // Remove friend from friend list
   const removeFriend = async () => {
+    setSubmitting(true);
     await api
       .delete(`/friendList/${isFriend?.id}/${loggedInUser?.id}`, {
         headers: {
@@ -193,12 +258,18 @@ const Profile = (props) => {
           "Content-Type": "application/json",
         },
       })
-      .then(async () => await refetchFriendList())
-      .catch((err) => console.log(`Delete req err - ${err}`));
+      .then(async () => {
+        await refetchFriendList();
+      })
+      .catch((err) => {
+        console.log(`Delete req err - ${err}`);
+      });
+    setSubmitting(false);
   };
 
   // Block another user
   const blockUser = async () => {
+    setSubmitting(true);
     if (isFriend) removeFriend();
     if (pendingRequest) friendRequestHandler(pendingRequest?.id, loggedInUser?.id);
     if (incomingRequest) friendRequestHandler(incomingRequest?.id, loggedInUser?.id);
@@ -214,23 +285,13 @@ const Profile = (props) => {
           "Content-Type": "application/json",
         },
       })
-      .then(async () => await refetchBlockList())
-      .catch((err) => console.log(`Delete req - ${err}`));
-  };
-
-  // Unblock another user
-  const unblockUser = async () => {
-    const id = isBlocked?.id;
-    const blocker = loggedInUser?.id;
-    await api
-      .delete(`/blockList/${id}/${blocker}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+      .then(async () => {
+        await refetchBlockList();
       })
-      .then(async () => await refetchBlockList())
-      .catch((err) => console.log(`Delete req - ${err}`));
+      .catch((err) => {
+        console.log(`Delete req - ${err}`);
+      });
+    setSubmitting(false);
   };
 
   const loading =
@@ -244,11 +305,14 @@ const Profile = (props) => {
   if (loading) return <Loading font="text-[2rem]" icon="w-[5rem] h-[5rem]" />;
 
   return (
-    <div className="flex flex-col items-center">
+    <div
+      className={`flex flex-col items-center w-full ${
+        submitting && "opacity-70 pointer-events-none"
+      } `}>
       {/* If not your own profile, displays friend list options based on your current relationship with the current user */}
       {props.stranger &&
         (pendingRequest ? (
-          <div className="flex mt-10 items-center bg-black bg-opacity-50 p-2 rounded-md">
+          <div className="flex mt-10 items-center bg-black/50 p-5 rounded-md shadow-md shadow-fuchsia-600/50">
             <h3>Friend request sent!</h3>
             <FaUserSlash
               className={`w-10 h-10 hover:cursor-pointer ml-2 ${
@@ -258,7 +322,7 @@ const Profile = (props) => {
             />
           </div>
         ) : isFriend ? (
-          <div className="text-yellow-400 flex mt-10 items-center bg-black bg-opacity-50 p-2 rounded-md">
+          <div className="text-fuchsia-400 flex mt-10 items-center bg-black/50 p-5 rounded-md shadow-md shadow-fuchsia-600/50 hover:cursor-pointer">
             <p>Remove friend</p>
             <FaUserMinus
               className={`w-10 h-10 hover:cursor-pointer ml-2 ${
@@ -269,7 +333,7 @@ const Profile = (props) => {
           </div>
         ) : (
           !incomingRequest && (
-            <div className="text-yellow-400 flex mt-10 items-center bg-black bg-opacity-50 p-2 rounded-md">
+            <div className="text-fuchsia-400 flex mt-10 items-center bg-black/50 p-5 rounded-md shadow-md shadow-fuchsia-600/50 hover:cursor-pointer">
               <p>Send friend request</p>
               <FaUserPlus
                 className={`w-10 h-10 hover:cursor-pointer ml-2 ${
@@ -284,12 +348,12 @@ const Profile = (props) => {
       {props?.stranger &&
         !props?.stranger?.admin &&
         (isBlocked ? (
-          <div className="flex mt-10 items-center bg-black bg-opacity-50 p-2 rounded-md text-gray-400">
+          <div className="flex mt-10 items-center bg-black bg-opacity-50 p-5 rounded-md text-fuchsia-200 shadow-md shadow-fuchsia-600/50 hover:cursor-pointer">
             <h3>Unblock user</h3>
             <FaUnlockAlt className="w-10 h-10 hover:cursor-pointer ml-2" onClick={unblockUser} />
           </div>
         ) : (
-          <div className="flex mt-10 items-center bg-black bg-opacity-50 p-2 rounded-md text-gray-400">
+          <div className="flex mt-10 items-center bg-black bg-opacity-50 p-5 rounded-md text-fuchsia-200 shadow-md shadow-fuchsia-600/50 hover:cursor-pointer">
             <h3>Block user</h3>
             <FaUserLock className="w-10 h-10 hover:cursor-pointer ml-2" onClick={blockUser} />
           </div>
@@ -334,17 +398,17 @@ const Profile = (props) => {
       <div className="mt-5 flex flex-col items-center">
         {/* Toggles the state for adding a new post if it's your own profile, otherwise add the option to go back to view all users */}
         {props.stranger ? (
-          <p className="text-yellow-400 underline mt-5 hover:cursor-pointer" onClick={props.back}>
+          <p className="text-fuchsia-400 underline mt-5 hover:cursor-pointer" onClick={props.back}>
             Back
           </p>
         ) : (
           <div onClick={() => setAddPost(!addPost)}>
-            <Button title={addPost ? "Hide" : "Add new post"} />
+            <Button title={addPost ? "Hide" : "Add new post"} classes="mt-10" />
           </div>
         )}
         {/* Displays the form for adding a new post if addPost is true */}
         {addPost && (
-          <Form className="border border-white rounded-lg shadow-lg shadow-white p-5 flex flex-col items-center bg-black bg-opacity-50 mt-5">
+          <Form className="border border-fuchsia-600/20 rounded-lg shadow-lg shadow-black p-5 flex flex-col items-center bg-black/70 mt-5">
             <div className="flex">
               <label htmlFor="message">Message:</label>
               <textarea
@@ -354,12 +418,14 @@ const Profile = (props) => {
                 rows="10"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="bg-transparent border border-white rounded-lg p-2"
+                className="bg-transparent border border-fuchsia-600/20 shadow-md shadow-fuchsia-600/50 focus:outline-none rounded-md ml-5 p-2"
               />
             </div>
-            <div className="flex items-center w-full justify-between my-2">
+            <div className="flex items-center my-5 w-full">
               <p>Image:</p>
-              <label htmlFor="pic" className="flex w-[15rem] text-[0.7rem] hover:cursor-pointer">
+              <label
+                htmlFor="pic"
+                className="flex w-[15rem] text-[0.7rem] hover:cursor-pointer ml-10">
                 <BsFillFileImageFill /> Upload image {image && "uploaded img"}
               </label>
               <input
