@@ -3,6 +3,7 @@ import AsgardBeam from "../audio/AsgardBeam.mp3";
 import SGCAlarm from "../audio/SGCAlarm.mp3";
 import GateClose from "../audio/GateClose.mp3";
 import GateOpen from "../audio/GateOpen.mp3";
+import IrisClose from "../audio/IrisClose.mp3";
 
 export const NotificationContext = createContext();
 
@@ -22,6 +23,9 @@ export const NotificationProvider = ({ children }) => {
       audio.play();
     } else if (state === "login") {
       const audio = new Audio(GateOpen);
+      audio.play();
+    } else if (state === "iris") {
+      const audio = new Audio(IrisClose);
       audio.play();
     }
     setNotification(msg);

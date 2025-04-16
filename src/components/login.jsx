@@ -43,68 +43,75 @@ const Login = (props) => {
         addBearerToken(token);
         localStorage.setItem("curUser", username);
         localStorage.setItem("token", token);
-        setStatus("success");
-        notifyContext(
-          <div className="flex items-center">
-            <FaSpaceShuttle className="mr-2" /> <span>Welcome back, {username}!</span>
-          </div>,
-          "login"
-        );
+        setIsSubmitting(false);
         navigate(`${username}`);
+        setStatus("success");
+        setTimeout(() => {
+          notifyContext(
+            <div className="flex items-center">
+              <FaSpaceShuttle className="mr-2" /> <span>Welcome back, {username}!</span>
+            </div>,
+            "login"
+          );
+        }, 500);
       })
       .catch((err) => {
         console.log(`Invalid credentials - ${err}`);
+        setIsSubmitting(false);
+        setStatus("error");
         notifyContext(
           <div className="flex items-center">
             <GiRadioactive className="mr-2" /> <span>Invalid credentials!</span>
           </div>,
-          "error"
+          "iris"
         );
       });
-    setIsSubmitting(false);
   };
 
   return (
     <div className="flex flex-col justify-start items-center text-[1.5rem] w-[min(40rem,90%)]">
-      <Form className="rounded-lg bg-black/50 p-5 shadow-lg shadow-fuchsia-600/50 mt-10 flex flex-col [&>*]:my-2 w-full">
-        <div className="w-full flex justify-between">
-          <label htmlFor="username">Username:</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={usernameValue}
-            onChange={(e) => setUsernameValue(e.target.value)}
-            className="bg-transparent ml-5 focus:outline-none rounded-sm shadow-md shadow-fuchsia-600/50"
-          />
-        </div>
-        <div className="w-full flex justify-between">
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="bg-transparent ml-5 focus:outline-none rounded-sm shadow-md shadow-fuchsia-600/50"
-          />
-        </div>
-        <Button
-          title={isSubmitting ? "Logging in..." : "Log In"}
-          submit
-          classes={`
+      <div
+        className={`flex flex-col justify-start items-center w-full ${isSubmitting && "hidden"}`}>
+        <Form className="rounded-lg bg-black/50 p-5 shadow-lg shadow-fuchsia-600/50 mt-10 flex flex-col [&>*]:my-2 w-full">
+          <div className="w-full flex justify-between">
+            <label htmlFor="username">Username:</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={usernameValue}
+              onChange={(e) => setUsernameValue(e.target.value)}
+              className="bg-transparent ml-5 focus:outline-none rounded-sm shadow-md shadow-fuchsia-600/50"
+            />
+          </div>
+          <div className="w-full flex justify-between">
+            <label htmlFor="password">Password:</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="bg-transparent ml-5 focus:outline-none rounded-sm shadow-md shadow-fuchsia-600/50"
+            />
+          </div>
+          <Button
+            title={isSubmitting ? "Logging in..." : "Log In"}
+            submit
+            classes={`
             ${
               (usernameValue.length < 6 || password.length < 6 || isSubmitting) &&
               "pointer-events-none opacity-70"
             } self-center
           `}
-          onClick={logIn}
-        />
-      </Form>
+            onClick={logIn}
+          />
+        </Form>
+        <p className="mt-5 text-fuchsia-600 underline hover:cursor-pointer" onClick={props.link}>
+          New user? Click here to create an account.
+        </p>
+      </div>
       {isSubmitting && <Submitting />}
-      <p className="mt-5 text-fuchsia-600 underline hover:cursor-pointer" onClick={props.link}>
-        New user? Click here to create an account.
-      </p>{" "}
     </div>
   );
 };
