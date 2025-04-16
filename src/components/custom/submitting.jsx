@@ -15,7 +15,7 @@ const Submitting = () => {
         autoPlay
         loop
         type="video/mp4"
-        className="w-[50rem] h-[25rem] rounded-lg bg-black"></video>
+        className="w-[50rem] h-[25rem] rounded-lg bg-black">There is a cool animation your browser is blocking for no reason. What a shame!</video>
     </div>
   );
 };
