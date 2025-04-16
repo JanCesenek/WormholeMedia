@@ -245,15 +245,13 @@ const NewUser = (props) => {
         navigate(`${username}/profile`);
         setIsSubmitting(false);
         setStatus("success");
-        setTimeout(() => {
-          notifyContext(
-            <div className="flex items-center">
-              <FaSpaceShuttle className="mr-2" />{" "}
-              <span>Welcome to the enlightened club, {username}!</span>
-            </div>,
-            "login"
-          );
-        }, 500);
+        notifyContext(
+          <div className="flex items-center">
+            <FaSpaceShuttle className="mr-2" />{" "}
+            <span>Welcome to the enlightened club, {username}!</span>
+          </div>,
+          "login"
+        );
       })
       .catch((err) => {
         console.log(`Post req err - ${err}`);

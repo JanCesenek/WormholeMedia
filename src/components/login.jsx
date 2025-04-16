@@ -18,8 +18,8 @@ const Login = (props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    loggedIn && navigate(`${userParams}`);
-  }, []);
+    loggedIn && !isSubmitting && navigate(`${userParams}`);
+  }, [isSubmitting, loggedIn, navigate, userParams]);
 
   const addBearerToken = (token) => {
     if (!token) {
@@ -43,21 +43,17 @@ const Login = (props) => {
         addBearerToken(token);
         localStorage.setItem("curUser", username);
         localStorage.setItem("token", token);
-        setIsSubmitting(false);
         navigate(`${username}`);
         setStatus("success");
-        setTimeout(() => {
-          notifyContext(
-            <div className="flex items-center">
-              <FaSpaceShuttle className="mr-2" /> <span>Welcome back, {username}!</span>
-            </div>,
-            "login"
-          );
-        }, 500);
+        notifyContext(
+          <div className="flex items-center">
+            <FaSpaceShuttle className="mr-2" /> <span>Welcome back, {username}!</span>
+          </div>,
+          "login"
+        );
       })
       .catch((err) => {
         console.log(`Invalid credentials - ${err}`);
-        setIsSubmitting(false);
         setStatus("error");
         notifyContext(
           <div className="flex items-center">
@@ -65,6 +61,9 @@ const Login = (props) => {
           </div>,
           "iris"
         );
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
