@@ -79,7 +79,7 @@ const Users = () => {
           const returnUser = (
             <div
               key={el.id}
-              className={`flex items-center bg-gradient-to-b from-black/80 via-fuchsia-800/40 to-black/80 rounded-md my-2 p-2 justify-between shadow-lg shadow-fuchsia-400/50 ${
+              className={`flex items-center bg-gradient-to-b from-black/80 via-fuchsia-800/40 to-black/80 rounded-md my-4 p-2 justify-between shadow-lg shadow-fuchsia-400/50 hover:translate-x-2 hover:-translate-y-2 hover:shadow-fuchsia-400 hover:shadow-xl ${
                 isFriend && "text-fuchsia-200 font-bold"
               } ${isBlocked && "text-fuchsia-800 text-thin"} ${
                 hostile && "pointer-events-none opacity-70"

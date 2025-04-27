@@ -164,7 +164,7 @@ const Messages = () => {
         },
       })
       .then(async () => {
-        await refetch();
+        await refetchMessages();
         setStatus("success");
         notifyContext(
           <div className="flex items-center">
