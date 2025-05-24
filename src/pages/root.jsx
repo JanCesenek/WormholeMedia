@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { NotificationContext } from "../context/NotificationContext";
 import Notification from "../components/custom/notification";
 import { FaCopyright } from "react-icons/fa";
-import logo from "../imgs/flamebulb.svg";
+import logo from "/flamebulb.svg";
 
 const RootLayout = () => {
   const { notification } = useContext(NotificationContext);
